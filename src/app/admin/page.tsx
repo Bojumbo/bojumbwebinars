@@ -20,7 +20,8 @@ export default function AdminPage() {
     videoUrl: '',
     startTime: '',
     fakeViewersBase: '500',
-    duration: '3600'
+    duration: '3600',
+    chatPresets: [] as any[]
   });
 
   useEffect(() => {
