@@ -47,7 +47,7 @@ export default function AdminPage() {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === '2856023b') {
+    if (password.trim() === '2856023b') {
       setIsAuthenticated(true);
       sessionStorage.setItem('admin_auth', 'true');
       fetchData();
