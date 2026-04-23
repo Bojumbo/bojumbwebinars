@@ -45,16 +45,6 @@ export default function AdminPage() {
     }
   };
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (password.trim() === '2856023b') {
-      setIsAuthenticated(true);
-      sessionStorage.setItem('admin_auth', 'true');
-      fetchData();
-    } else {
-      alert('Невірний пароль');
-    }
-  };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -127,19 +117,34 @@ export default function AdminPage() {
     }
   };
 
+  const handleLogin = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const enteredPassword = formData.get('adminPassword') as string;
+    
+    if (enteredPassword?.trim() === 'admin123') {
+      setIsAuthenticated(true);
+      sessionStorage.setItem('admin_auth', 'true');
+      fetchData();
+    } else {
+      alert('Невірний пароль');
+    }
+  };
+
   if (!isAuthenticated) {
     return (
-      <main style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <main style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-dark)' }}>
         <div className="glass" style={{ padding: '3rem', maxWidth: '400px', width: '100%', textAlign: 'center' }}>
           <Lock size={48} style={{ marginBottom: '1.5rem', color: 'var(--accent)' }} />
           <h2 style={{ marginBottom: '2rem' }}>Вхід в Адмін-панель</h2>
           <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <input 
+              name="adminPassword"
               type="password" 
               className="input-field" 
               placeholder="Пароль" 
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              autoComplete="current-password"
+              required
             />
             <button type="submit" className="btn-primary">Увійти</button>
           </form>
