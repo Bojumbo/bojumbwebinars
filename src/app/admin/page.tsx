@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Upload, Calendar, Plus, Play, Database, List, ShieldCheck, Lock, Trash2, ExternalLink } from 'lucide-react';
+import { Upload, Calendar, Plus, Play, Database, List, Shield, Lock, Trash2, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
+
+export const dynamic = 'force-dynamic';
 
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -151,7 +153,7 @@ export default function AdminPage() {
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5rem' }}>
           <h1 style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <ShieldCheck color="var(--accent)" size={32} /> Панель Керування
+            <Shield color="var(--accent)" size={32} /> Панель Керування
           </h1>
           <button className="glass" style={{ padding: '0.5rem 1rem', borderRadius: '8px' }} onClick={() => {
             sessionStorage.removeItem('admin_auth');
