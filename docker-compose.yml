@@ -4,15 +4,13 @@ services:
   web:
     build: .
     restart: always
-    ports:
-      - "3000:3000"
     environment:
       - TELEGRAM_TOKEN=${TELEGRAM_TOKEN}
       - BOT_SECRET=${BOT_SECRET}
-      - WEBSITE_URL=http://your-server-ip:3000
+      - WEBSITE_URL=https://webinar.bojumbo.com
+    # Прибираємо прямий монтаж файлів, які можуть бути відсутні
     volumes:
-      - ./data.json:/app/data.json
-      - ./public/uploads:/app/public/uploads
+      - storage-data:/app/data
 
   bot:
     build: .
@@ -24,3 +22,13 @@ services:
       - WEBSITE_URL=http://web:3000
     depends_on:
       - web
+
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    restart: always
+    command: tunnel run
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+
+volumes:
+  storage-data:
