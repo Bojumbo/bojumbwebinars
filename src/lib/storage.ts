@@ -29,16 +29,23 @@ export interface ChatMessage {
   isFake: boolean;
 }
 
+interface VideoFile {
+  name: string;
+  url: string;
+}
+
 interface DB {
   webinars: Webinar[];
   codes: InvitationCode[];
   chatPresets: ChatMessage[];
+  library: VideoFile[];
 }
 
 const initialDB: DB = {
   webinars: [],
   codes: [{ code: 'ADMIN123', isUsed: false }],
-  chatPresets: []
+  chatPresets: [],
+  library: []
 };
 
 function readDB(): DB {
@@ -47,7 +54,9 @@ function readDB(): DB {
     return initialDB;
   }
   const data = fs.readFileSync(DB_PATH, 'utf-8');
-  return JSON.parse(data);
+  const parsed = JSON.parse(data);
+  if (!parsed.library) parsed.library = [];
+  return parsed;
 }
 
 function writeDB(data: DB) {
@@ -76,6 +85,12 @@ export const db = {
   addChatPreset: (msg: ChatMessage) => {
     const data = readDB();
     data.chatPresets.push(msg);
+    writeDB(data);
+  },
+  getLibrary: () => readDB().library,
+  addToLibrary: (file: VideoFile) => {
+    const data = readDB();
+    data.library.push(file);
     writeDB(data);
   }
 };

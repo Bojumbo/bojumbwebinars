@@ -40,6 +40,9 @@ export default function AdminPage() {
       
       const resC = await fetch('/api/admin/codes');
       setCodes(await resC.json());
+
+      const resL = await fetch('/api/admin/library');
+      if (resL.ok) setUploadedFiles(await resL.json());
     } catch (e) {
       console.error(e);
     }

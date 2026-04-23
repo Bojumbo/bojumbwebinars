@@ -24,10 +24,14 @@ export async function POST(req: NextRequest) {
     const path = join(uploadDir, file.name);
     await writeFile(path, buffer);
     
+    // Save to DB library
+    const { db } = require('@/lib/storage');
+    const fileInfo = { name: file.name, url: `/uploads/${file.name}` };
+    db.addToLibrary(fileInfo);
+    
     return NextResponse.json({ 
       success: true, 
-      url: `/uploads/${file.name}`,
-      name: file.name
+      ...fileInfo
     });
   } catch (error) {
     console.error('Upload error:', error);
