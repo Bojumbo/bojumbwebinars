@@ -178,10 +178,11 @@ export default function AdminPage() {
             <div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
                 {webinars.length === 0 && <p style={{ color: 'var(--text-muted)' }}>Вебінарів ще не створено</p>}
-                {webinars.map(w => {
+                {webinars.map((w: any) => {
                   const now = new Date().getTime();
                   const start = new Date(w.startTime).getTime();
-                  const end = start + (w.duration || 3600) * 1000;
+                  const durationValue = parseInt(String(w.duration || 3600));
+                  const end = start + durationValue * 1000;
                   
                   let status = { text: 'Заплановано', color: 'var(--text-muted)' };
                   if (now >= start && now < end) {
@@ -200,7 +201,7 @@ export default function AdminPage() {
                       </div>
                       <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Calendar size={14} /> {new Date(w.startTime).toLocaleString()}</div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Play size={14} /> {Math.round(w.duration / 60)} хв.</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Play size={14} /> {Math.round(durationValue / 60)} хв.</div>
                       </div>
                       <div style={{ marginTop: '1.5rem', display: 'flex', gap: '1rem' }}>
                         <Link href={`/webinar/${w.id}`} target="_blank" className="btn-primary" style={{ flex: 1, textAlign: 'center', fontSize: '0.9rem', padding: '0.5rem' }}>
