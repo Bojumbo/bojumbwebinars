@@ -137,8 +137,10 @@ export default function AdminPage() {
         <div className="glass" style={{ padding: '3rem', maxWidth: '400px', width: '100%', textAlign: 'center' }}>
           <Lock size={48} style={{ marginBottom: '1.5rem', color: 'var(--accent)' }} />
           <h2 style={{ marginBottom: '2rem' }}>Вхід в Адмін-панель</h2>
-          <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <form method="POST" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <input type="text" name="username" autoComplete="username" style={{ display: 'none' }} defaultValue="admin" />
             <input 
+              id="adminPassInput"
               name="adminPassword"
               type="password" 
               className="input-field" 
@@ -146,7 +148,22 @@ export default function AdminPage() {
               autoComplete="current-password"
               required
             />
-            <button type="submit" className="btn-primary">Увійти</button>
+            <button 
+              type="button" 
+              className="btn-primary"
+              onClick={(e) => {
+                const input = document.getElementById('adminPassInput') as HTMLInputElement;
+                if (input?.value.trim() === 'admin123') {
+                  setIsAuthenticated(true);
+                  sessionStorage.setItem('admin_auth', 'true');
+                  fetchData();
+                } else {
+                  alert('Невірний пароль');
+                }
+              }}
+            >
+              Увійти
+            </button>
           </form>
         </div>
       </main>
