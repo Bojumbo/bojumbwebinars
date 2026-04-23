@@ -3,6 +3,6 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 COPY . .
-RUN npm run build
+# Пропускаємо білд, запускаємо в режимі розробки для економії пам'яті
 EXPOSE 3000
-CMD ["npm", "start"]
+CMD ["npm", "run", "dev"]
