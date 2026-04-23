@@ -3,10 +3,8 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  experimental: {
-    // Дозволяємо роботу через ваш домен для усунення помилок Cross-origin у режимі dev
-    allowedDevOrigins: ['webinars.bojumbohost.pp.ua'],
-  }
+  // Переміщено в корінь, як того вимагає Next.js 15+
+  allowedDevOrigins: ['webinars.bojumbohost.pp.ua'],
 };
 
 export default nextConfig;
