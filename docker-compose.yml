@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - TELEGRAM_TOKEN=${TELEGRAM_TOKEN}
+      - BOT_SECRET=${BOT_SECRET}
+      - WEBSITE_URL=http://your-server-ip:3000
+    volumes:
+      - ./data.json:/app/data.json
+      - ./public/uploads:/app/public/uploads
+
+  bot:
+    build: .
+    restart: always
+    command: node bot.js
+    environment:
+      - TELEGRAM_TOKEN=${TELEGRAM_TOKEN}
+      - BOT_SECRET=${BOT_SECRET}
+      - WEBSITE_URL=http://web:3000
+    depends_on:
+      - web
