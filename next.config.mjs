@@ -3,7 +3,10 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  // eslint було видалено, бо Next 15+ ігнорує його в цьому конфігу
+  experimental: {
+    // Дозволяємо роботу через ваш домен для усунення помилок Cross-origin у режимі dev
+    allowedDevOrigins: ['webinars.bojumbohost.pp.ua'],
+  }
 };
 
 export default nextConfig;

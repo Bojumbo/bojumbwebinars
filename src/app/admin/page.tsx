@@ -135,7 +135,8 @@ export default function AdminPage() {
         <div className="glass" style={{ padding: '3rem', maxWidth: '400px', width: '100%', textAlign: 'center' }}>
           <Lock size={48} style={{ marginBottom: '1.5rem', color: 'var(--accent)' }} />
           <h2 style={{ marginBottom: '2rem' }}>Вхід в Адмін-панель</h2>
-          <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <form onSubmit={handleLogin} method="POST" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <input type="text" name="username" autoComplete="username" style={{ display: 'none' }} defaultValue="admin" />
             <input 
               type="password" 
               className="input-field" 
