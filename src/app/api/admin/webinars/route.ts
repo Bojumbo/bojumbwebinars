@@ -1,3 +1,4 @@
+import { NextRequest, NextResponse } from 'next/server';
 import { db, Webinar } from '@/lib/storage';
 
 export const dynamic = 'force-dynamic';
