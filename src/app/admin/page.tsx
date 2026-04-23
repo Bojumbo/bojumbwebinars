@@ -117,12 +117,10 @@ export default function AdminPage() {
     }
   };
 
-  const handleLogin = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const enteredPassword = formData.get('adminPassword') as string;
-    
-    if (enteredPassword?.trim() === 'admin123') {
+    console.log('Login attempt...');
+    if (password.trim() === 'admin123') {
       setIsAuthenticated(true);
       sessionStorage.setItem('admin_auth', 'true');
       fetchData();
@@ -133,37 +131,21 @@ export default function AdminPage() {
 
   if (!isAuthenticated) {
     return (
-      <main style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-dark)' }}>
+      <main style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0f0c29' }}>
         <div className="glass" style={{ padding: '3rem', maxWidth: '400px', width: '100%', textAlign: 'center' }}>
           <Lock size={48} style={{ marginBottom: '1.5rem', color: 'var(--accent)' }} />
           <h2 style={{ marginBottom: '2rem' }}>Вхід в Адмін-панель</h2>
-          <form method="POST" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <input type="text" name="username" autoComplete="username" style={{ display: 'none' }} defaultValue="admin" />
+          <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <input 
-              id="adminPassInput"
-              name="adminPassword"
               type="password" 
               className="input-field" 
               placeholder="Пароль" 
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               autoComplete="current-password"
               required
             />
-            <button 
-              type="button" 
-              className="btn-primary"
-              onClick={(e) => {
-                const input = document.getElementById('adminPassInput') as HTMLInputElement;
-                if (input?.value.trim() === 'admin123') {
-                  setIsAuthenticated(true);
-                  sessionStorage.setItem('admin_auth', 'true');
-                  fetchData();
-                } else {
-                  alert('Невірний пароль');
-                }
-              }}
-            >
-              Увійти
-            </button>
+            <button type="submit" className="btn-primary">Увійти</button>
           </form>
         </div>
       </main>
