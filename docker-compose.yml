@@ -14,6 +14,8 @@ services:
       - HOSTNAME=0.0.0.0
     volumes:
       - storage-data:/app/data
+      # ДОДАНО: зв'язок з вашою папкою для відео (FileZilla)
+      - /home/bojumbo/webinar_videos:/app/public/uploads
 
   bot:
     build: .
