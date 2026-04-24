@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Shield, Plus, List, Trash2, ExternalLink, Calendar, Play, Upload, Database, Lock, Send } from 'lucide-react';
+import { Shield, Plus, List, Trash2, ExternalLink, Calendar, Play, Upload, Database, Lock } from 'lucide-react';
 
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -40,7 +40,9 @@ export default function AdminPage() {
       if (resC.ok) setCodes(await resC.json());
       const resL = await fetch('/api/admin/library');
       if (resL.ok) setUploadedFiles(await resL.json());
-    } catch (e) { console.error(e); }
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   const handleCreateWebinar = async (e: React.FormEvent) => {
@@ -49,34 +51,47 @@ export default function AdminPage() {
     if (formData.videoUrl) {
       const vid = document.createElement('video');
       vid.src = formData.videoUrl;
-      await new Promise((r) => {
-        vid.onloadedmetadata = () => { duration = Math.round(vid.duration); r(null); };
-        vid.onerror = () => r(null);
+      await new Promise((resolve) => {
+        vid.onloadedmetadata = () => { duration = Math.round(vid.duration); resolve(null); };
+        vid.onerror = () => resolve(null);
       });
     }
+
     const res = await fetch('/api/admin/webinars', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ...formData, duration }),
     });
-    if (res.ok) { alert('Створено!'); fetchData(); setActiveTab('list'); }
+    if (res.ok) {
+      alert('Вебінар створено!');
+      fetchData();
+      setActiveTab('list');
+    }
   };
 
   const handleDeleteWebinar = async (id: string) => {
-    if (!confirm('Видалити?')) return;
+    if (!confirm('Видалити цей вебінар?')) return;
     const res = await fetch(`/api/admin/webinars?id=${id}`, { method: 'DELETE' });
     if (res.ok) fetchData();
   };
 
-  const handleFileUpload = async (e: any) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploading(true);
     const fd = new FormData();
     fd.append('file', file);
-    const res = await fetch('/api/admin/upload', { method: 'POST', body: fd });
-    if (res.ok) { alert('Завантажено!'); fetchData(); }
-    setUploading(false);
+    try {
+      const res = await fetch('/api/admin/upload', { method: 'POST', body: fd });
+      if (res.ok) {
+        alert('Відео завантажено!');
+        fetchData();
+      }
+    } catch (err) {
+      alert('Помилка завантаження');
+    } finally {
+      setUploading(false);
+    }
   };
 
   if (!isAuthenticated) {
@@ -87,8 +102,10 @@ export default function AdminPage() {
           <h2 style={{ marginBottom: '2rem', color: '#1e293b' }}>Вхід в Адмін-панель</h2>
           <form onSubmit={(e) => {
             e.preventDefault();
-            if (password === 'admin123') { setIsAuthenticated(true); sessionStorage.setItem('admin_auth', 'true'); }
-            else alert('Невірний пароль');
+            if (password === 'admin123') {
+              setIsAuthenticated(true);
+              sessionStorage.setItem('admin_auth', 'true');
+            } else alert('Невірний пароль');
           }} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <input type="password" className="input-field" placeholder="Пароль" value={password} onChange={(e) => setPassword(e.target.value)} required />
             <button type="submit" className="btn-primary">Увійти</button>
@@ -102,47 +119,112 @@ export default function AdminPage() {
     <main style={{ minHeight: '100vh', padding: '2rem' }}>
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2rem' }}>
-          <h1 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#1e293b' }}><Shield /> Панель</h1>
+          <h1 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#1e293b' }}><Shield /> Панель керування</h1>
           <button className="btn-primary" style={{ background: '#ef4444' }} onClick={() => { sessionStorage.clear(); location.reload(); }}>Вихід</button>
         </div>
 
         <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
-          <button onClick={() => setActiveTab('list')} className={activeTab === 'list' ? 'btn-primary' : 'glass'} style={{ padding: '0.5rem 1rem' }}>Список</button>
-          <button onClick={() => setActiveTab('create')} className={activeTab === 'create' ? 'btn-primary' : 'glass'} style={{ padding: '0.5rem 1rem' }}>Створити</button>
-          <button onClick={() => setActiveTab('library')} className={activeTab === 'library' ? 'btn-primary' : 'glass'} style={{ padding: '0.5rem 1rem' }}>Медіа</button>
-          <button onClick={() => setActiveTab('codes')} className={activeTab === 'codes' ? 'btn-primary' : 'glass'} style={{ padding: '0.5rem 1rem' }}>Коди</button>
+          <button onClick={() => setActiveTab('list')} className={activeTab === 'list' ? 'btn-primary' : 'glass'} style={{ padding: '0.8rem 1.5rem' }}>Вебінари</button>
+          <button onClick={() => setActiveTab('create')} className={activeTab === 'create' ? 'btn-primary' : 'glass'} style={{ padding: '0.8rem 1.5rem' }}>Створити</button>
+          <button onClick={() => setActiveTab('library')} className={activeTab === 'library' ? 'btn-primary' : 'glass'} style={{ padding: '0.8rem 1.5rem' }}>Бібліотека</button>
+          <button onClick={() => setActiveTab('codes')} className={activeTab === 'codes' ? 'btn-primary' : 'glass'} style={{ padding: '0.8rem 1.5rem' }}>Слухачі</button>
         </div>
 
-        <div className="glass" style={{ padding: '2rem' }}>
+        <div className="glass" style={{ padding: '2rem', background: '#fff' }}>
+          {activeTab === 'list' && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '1.5rem' }}>
+              {webinars.map((w: any) => (
+                <div key={w.id} className="glass" style={{ padding: '1.5rem' }}>
+                  <h3 style={{ marginBottom: '0.5rem' }}>{w.title}</h3>
+                  <p style={{ fontSize: '0.85rem', color: '#64748b' }}><Calendar size={14} /> {new Date(w.startTime).toLocaleString()}</p>
+                  <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem' }}>
+                    <Link href={`/webinar/${w.id}`} target="_blank" className="btn-primary" style={{ flex: 1, fontSize: '0.8rem' }}>Перегляд</Link>
+                    <button onClick={() => handleDeleteWebinar(w.id)} className="glass" style={{ color: '#ef4444', padding: '0.5rem' }}><Trash2 size={18} /></button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
           {activeTab === 'create' && (
             <form onSubmit={handleCreateWebinar} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-              <label>Назва вебінару</label>
+              <label style={{ fontWeight: 600 }}>Назва вебінару</label>
               <input type="text" className="input-field" required value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} />
               
-              <label>Джерело відео</label>
-              <select className="input-field" onChange={(e) => setFormData({...formData, videoUrl: e.target.value === 'custom' ? '' : e.target.value})}>
-                <option value="custom">Посилання (URL)</option>
-                {uploadedFiles.map(f => <option key={f.url} value={f.url}>{f.name}</option>)}
+              <label style={{ fontWeight: 600 }}>Джерело відео</label>
+              <select className="input-field" value={uploadedFiles.some(f => f.url === formData.videoUrl) ? formData.videoUrl : "custom"} onChange={(e) => setFormData({...formData, videoUrl: e.target.value === 'custom' ? '' : e.target.value})}>
+                <option value="custom">🔗 Власне посилання (URL / YouTube)</option>
+                {uploadedFiles.map(f => <option key={f.url} value={f.url}>📹 {f.name}</option>)}
               </select>
 
               <input type="text" className="input-field" placeholder="URL відео" value={formData.videoUrl} onChange={e => setFormData({...formData, videoUrl: e.target.value})} />
               
-              <label>Час початку</label>
+              <label style={{ fontWeight: 600 }}>Час початку</label>
               <input type="datetime-local" className="input-field" required value={formData.startTime} onChange={e => setFormData({...formData, startTime: e.target.value})} />
+
+              <label style={{ fontWeight: 600 }}>Фейкові глядачі (база)</label>
+              <input type="number" className="input-field" value={formData.fakeViewersBase} onChange={e => setFormData({...formData, fakeViewersBase: e.target.value})} />
+
+              <label style={{ fontWeight: 600 }}>Чат пресети (Формат: сек | ім'я | текст)</label>
+              <textarea 
+                className="input-field" 
+                style={{ height: '150px', fontFamily: 'monospace' }} 
+                placeholder="10 | Іван | Привіт!&#10;20 | Марія | Чи буде запис?"
+                onChange={(e) => {
+                  const presets = e.target.value.split('\n').map(line => {
+                    const [time, name, text] = line.split('|').map(s => s.trim());
+                    return (time && name && text) ? { id: Math.random().toString(), senderName: name, text, timestamp: parseInt(time) } : null;
+                  }).filter(Boolean);
+                  setFormData({...formData, chatPresets: presets} as any);
+                }}
+              />
               
-              <button type="submit" className="btn-primary">Зберегти вебінар</button>
+              <button type="submit" className="btn-primary" style={{ padding: '1rem' }}>Створити автовебінар</button>
             </form>
           )}
 
-          {activeTab === 'list' && (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-              {webinars.map((w:any) => (
-                <div key={w.id} className="glass" style={{ padding: '1rem' }}>
-                  <h3>{w.title}</h3>
-                  <p>{new Date(w.startTime).toLocaleString()}</p>
-                  <button onClick={() => handleDeleteWebinar(w.id)} style={{ color: 'red', marginTop: '1rem' }}>Видалити</button>
-                </div>
-              ))}
+          {activeTab === 'library' && (
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2rem' }}>
+                <h3>Бібліотека відео</h3>
+                <label className="btn-primary" style={{ cursor: 'pointer' }}>
+                  <Upload size={18} /> {uploading ? 'Завантаження...' : 'Завантажити відео'}
+                  <input type="file" hidden onChange={handleFileUpload} accept="video/*" />
+                </label>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem' }}>
+                {uploadedFiles.map(file => (
+                  <div key={file.url} className="glass" style={{ padding: '1rem', textAlign: 'center' }}>
+                    <Play size={32} style={{ margin: '0 auto 0.5rem', color: '#4f46e5' }} />
+                    <p style={{ fontSize: '0.8rem', fontWeight: 600, overflow: 'hidden' }}>{file.name}</p>
+                    <button className="btn-primary" style={{ width: '100%', marginTop: '1rem', fontSize: '0.75rem', height: '32px' }} onClick={() => { setFormData({...formData, videoUrl: file.url}); setActiveTab('create'); }}>Обрати</button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'codes' && (
+            <div>
+              <h3 style={{ marginBottom: '1.5rem' }}>Зареєстровані слухачі</h3>
+              <table style={{ width: '100%', textAlign: 'left' }}>
+                <thead>
+                  <tr style={{ color: '#64748b', fontSize: '0.85rem' }}>
+                    <th style={{ padding: '0.5rem' }}>Промокод</th>
+                    <th style={{ padding: '0.5rem' }}>Ім'я</th>
+                    <th style={{ padding: '0.5rem' }}>Контакт</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {codes.map((c: any, i: number) => (
+                    <tr key={i} style={{ borderTop: '1px solid #f1f5f9' }}>
+                      <td style={{ padding: '1rem', fontWeight: 700, color: '#4f46e5' }}>{c.code}</td>
+                      <td style={{ padding: '1rem' }}>{c.usedBy || '—'}</td>
+                      <td style={{ padding: '1rem' }}>{c.contact || '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </div>
