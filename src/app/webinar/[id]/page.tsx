@@ -63,7 +63,6 @@ export default function WebinarPage({ params }: { params: Promise<{ id: string }
         const secs = Math.floor((diff % 60000) / 1000);
         setCountdown(`${mins}:${secs < 10 ? '0' : ''}${secs}`);
 
-        // Набір глядачів за 1 хвилину до старту
         if (diff <= 60000) {
           const progress = 1 - (diff / 60000);
           const base = parseInt(webinarData.fakeViewersBase || 0);
@@ -75,7 +74,6 @@ export default function WebinarPage({ params }: { params: Promise<{ id: string }
         setIsLive(true);
         setCountdown(null);
         
-        // Жива пульсація глядачів ±5 осіб
         const base = parseInt(webinarData.fakeViewersBase || 0);
         const fluctuation = Math.floor(Math.random() * 11) - 5;
         setViewerCount(Math.max(0, base + fluctuation));
@@ -90,7 +88,6 @@ export default function WebinarPage({ params }: { params: Promise<{ id: string }
           }
         }
 
-        // Впорскування фейкових повідомлень
         if (webinarData.chatPresets) {
           const currentOffset = Math.floor(offset);
           const newFakeMsgs = webinarData.chatPresets.filter((m: any) => m.timestamp === currentOffset);
@@ -115,7 +112,6 @@ export default function WebinarPage({ params }: { params: Promise<{ id: string }
         setIsFinished(true);
         isFinishedRef.current = true;
 
-        // Вихід глядачів після завершення (протягом 60 сек)
         const afterEnd = Math.abs(diff) - durationMs;
         if (afterEnd <= 60000) {
           const progress = 1 - (afterEnd / 60000);
@@ -143,7 +139,16 @@ export default function WebinarPage({ params }: { params: Promise<{ id: string }
     setInputText('');
   };
 
+  const getYouTubeId = (url: string) => {
+    if (!url) return null;
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[2].length === 11) ? match[2] : null;
+  };
+
   if (!webinarData) return <div style={{ textAlign: 'center', padding: '5rem' }}>Завантаження...</div>;
+
+  const ytId = getYouTubeId(webinarData.videoUrl);
 
   return (
     <main style={{ minHeight: '100vh', background: '#f8fafc', display: 'flex', flexDirection: 'column' }}>
@@ -170,18 +175,31 @@ export default function WebinarPage({ params }: { params: Promise<{ id: string }
           
           {isLive && (
             <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-              <video 
-                ref={videoRef}
-                src={webinarData.videoUrl} 
-                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                playsInline
-                muted={isMuted}
-                onPlay={() => setHasInteracted(true)}
-              />
-              {!hasInteracted && (
+              {ytId ? (
+                <iframe
+                  width="100%"
+                  height="100%"
+                  src={`https://www.youtube.com/embed/${ytId}?autoplay=1&mute=${isMuted ? 1 : 0}&controls=0&modestbranding=1&rel=0`}
+                  title="YouTube video player"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                ></iframe>
+              ) : (
+                <video 
+                  ref={videoRef}
+                  src={webinarData.videoUrl} 
+                  style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                  playsInline
+                  muted={isMuted}
+                  onPlay={() => setHasInteracted(true)}
+                />
+              )}
+              
+              {!hasInteracted && isMuted && (
                 <div 
                   onClick={() => { setIsMuted(false); setHasInteracted(true); videoRef.current?.play(); }}
-                  style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', flexDirection: 'column', gap: '1rem' }}
+                  style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', flexDirection: 'column', gap: '1rem', zIndex: 20 }}
                 >
                   <Play size={64} fill="currentColor" />
                   <p style={{ fontSize: '1.2rem', fontWeight: 600 }}>Натисніть, щоб дивитися зі звуком</p>
