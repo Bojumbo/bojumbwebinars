@@ -29,9 +29,14 @@ export default function AdminPage() {
   useEffect(() => {
     if (sessionStorage.getItem('admin_auth') === 'true') {
       setIsAuthenticated(true);
-      fetchData();
     }
   }, []);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchData();
+    }
+  }, [activeTab, isAuthenticated]);
 
   const fetchData = async () => {
     try {
