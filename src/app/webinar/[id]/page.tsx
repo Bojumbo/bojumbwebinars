@@ -138,40 +138,40 @@ export default function WebinarPage({ params }: { params: Promise<{ id: string }
   }
 
   return (
-    <main style={{ height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+    <main style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--background)' }}>
       {/* Header */}
-      <header className="glass" style={{ margin: '1rem', padding: '0.75rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2 style={{ fontSize: '1.1rem', fontWeight: 600 }}>{webinarData.title}</h2>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#ff4b4b', fontWeight: 600 }}>
-            <span style={{ width: '8px', height: '8px', background: '#ff4b4b', borderRadius: '50%', boxShadow: '0 0 10px #ff4b4b' }} />
-            {isLive ? 'LIVE' : 'WAITING'}
+      <header style={{ padding: '1rem 2rem', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fff' }}>
+        <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--foreground)' }}>{webinarData.title}</h2>
+        <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', color: '#ef4444', fontWeight: 700, fontSize: '0.85rem', background: '#fef2f2', padding: '0.4rem 0.8rem', borderRadius: '8px', border: '1px solid #fee2e2' }}>
+            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ef4444', animation: 'pulse 2s infinite' }} />
+            НАЖИВО
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255,255,255,0.1)', padding: '0.3rem 0.8rem', borderRadius: '20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#f8fafc', padding: '0.4rem 1rem', borderRadius: '20px', fontWeight: 600, border: '1px solid #e2e8f0', fontSize: '0.9rem' }}>
             <Users size={16} /> {viewerCount}
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <div style={{ flex: 1, display: 'flex', padding: '0 1rem 1rem 1rem', gap: '1rem', overflow: 'hidden' }}>
+      <div style={{ flex: 1, display: 'flex', padding: '1.5rem', gap: '1.5rem', overflow: 'hidden' }}>
         {/* Video Side */}
-        <div style={{ flex: 2, position: 'relative', background: '#000', borderRadius: '16px', overflow: 'hidden' }}>
+        <div style={{ flex: 2.2, position: 'relative', background: '#000', borderRadius: '24px', overflow: 'hidden', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)' }}>
           {!isLive && (
-            <div style={{ position: 'absolute', inset: 0, zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%)' }}>
-              <Clock size={48} style={{ marginBottom: '1rem', color: 'var(--accent)' }} />
-              <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>{countdown === "Завершено" ? "Трансляцію завершено" : "Вебінар скоро почнеться"}</h3>
-              <p style={{ fontSize: '2.5rem', fontWeight: 800, letterSpacing: '2px' }}>{countdown}</p>
+            <div style={{ position: 'absolute', inset: 0, zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#1e293b' }}>
+              <Clock size={64} style={{ marginBottom: '1.5rem', color: 'var(--accent)' }} />
+              <h3 style={{ fontSize: '1.8rem', marginBottom: '0.75rem', fontWeight: 800, color: '#fff' }}>{countdown === "Завершено" ? "Трансляцію завершено" : "Вебінар скоро почнеться"}</h3>
+              <p style={{ fontSize: '3rem', fontWeight: 900, letterSpacing: '4px', color: 'var(--accent)' }}>{countdown}</p>
             </div>
           )}
           
           {isLive && (
             <>
               {!hasInteracted && (
-                <div style={{ position: 'absolute', inset: 0, zIndex: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)' }}>
+                <div style={{ position: 'absolute', inset: 0, zIndex: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)' }}>
                   <button 
                     className="btn-primary" 
-                    style={{ scale: '1.2' }}
+                    style={{ padding: '1.25rem 2.5rem', borderRadius: '16px', fontSize: '1.2rem', boxShadow: '0 0 40px rgba(79, 70, 229, 0.4)' }}
                     onClick={() => {
                       setHasInteracted(true);
                       setIsMuted(false);
@@ -181,7 +181,7 @@ export default function WebinarPage({ params }: { params: Promise<{ id: string }
                       }
                     }}
                   >
-                    Приєднатися та увімкнути звук
+                    Приєднатися до трансляції
                   </button>
                 </div>
               )}
@@ -203,45 +203,57 @@ export default function WebinarPage({ params }: { params: Promise<{ id: string }
                 }}
               />
 
-              {hasInteracted && isMuted && (
-                <button 
-                  className="glass" 
-                  style={{ position: 'absolute', top: '20px', left: '20px', zIndex: 30, padding: '0.5rem 1rem' }}
-                  onClick={() => { setIsMuted(false); if (videoRef.current) videoRef.current.muted = false; }}
-                >
-                  Увімкнути звук 🔊
-                </button>
-              )}
-
-              <div style={{ position: 'absolute', bottom: '20px', left: '20px', padding: '10px 20px', background: 'rgba(0,0,0,0.5)', borderRadius: '8px', pointerEvents: 'none' }}>
-                Пряма трансляція
+              <div style={{ position: 'absolute', top: '24px', left: '24px', zIndex: 30, display: 'flex', gap: '10px' }}>
+                {hasInteracted && isMuted && (
+                  <button 
+                    className="btn-primary" 
+                    style={{ background: '#fff', color: '#000', padding: '0.6rem 1.2rem', borderRadius: '10px', fontSize: '0.85rem' }}
+                    onClick={() => { setIsMuted(false); if (videoRef.current) videoRef.current.muted = false; }}
+                  >
+                    Увімкнути звук 🔊
+                  </button>
+                )}
+                <div style={{ padding: '0.6rem 1.2rem', background: 'rgba(0,0,0,0.4)', borderRadius: '10px', color: '#fff', fontSize: '0.85rem', fontWeight: 600, backdropFilter: 'blur(4px)' }}>
+                  HD 1080p
+                </div>
               </div>
             </>
           )}
         </div>
 
         {/* Chat Side */}
-        <aside className="glass" style={{ flex: 0.8, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          <div style={{ padding: '1rem', borderBottom: '1px solid var(--border)', fontWeight: 600 }}>Чат трансляції</div>
+        <aside style={{ flex: 0.8, display: 'flex', flexDirection: 'column', background: '#fff', borderRadius: '24px', overflow: 'hidden', border: '1px solid var(--border)', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.02)' }}>
+          <div style={{ padding: '1.25rem', borderBottom: '1px solid var(--border)', fontWeight: 800, fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--success)' }} />
+            ЧАТ ТРАНСЛЯЦІЇ
+          </div>
           
-          <div style={{ flex: 1, overflowY: 'auto', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {messages.length === 0 && (
+              <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                Поки немає повідомлень. Будьте першим!
+              </div>
+            )}
             {messages.map(msg => (
-              <div key={msg.id} style={{ animation: 'slideIn 0.3s ease-out' }}>
-                <span style={{ fontWeight: 700, color: 'var(--accent)', marginRight: '0.5rem' }}>{msg.sender}:</span>
-                <span style={{ color: '#fff' }}>{msg.text}</span>
+              <div key={msg.id} style={{ animation: 'slideIn 0.3s ease-out', background: '#f8fafc', padding: '0.75rem', borderRadius: '12px' }}>
+                <span style={{ fontWeight: 800, color: 'var(--accent)', fontSize: '0.85rem', display: 'block', marginBottom: '0.2rem' }}>{msg.sender}</span>
+                <span style={{ color: 'var(--foreground)', fontSize: '0.9rem' }}>{msg.text}</span>
               </div>
             ))}
           </div>
 
-          <form onSubmit={sendMessage} style={{ padding: '1rem', borderTop: '1px solid var(--border)', display: 'flex', gap: '0.5rem' }}>
-            <input 
-              type="text" 
-              className="input-field" 
-              placeholder="Напишіть повідомлення..."
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-            />
-            <button type="submit" className="btn-primary" style={{ padding: '0.5rem' }}><Send size={18} /></button>
+          <form onSubmit={sendMessage} style={{ padding: '1.25rem', borderTop: '1px solid var(--border)', background: '#fff' }}>
+            <div style={{ display: 'flex', gap: '0.5rem', background: '#f1f5f9', padding: '0.4rem', borderRadius: '14px' }}>
+              <input 
+                type="text" 
+                className="input-field" 
+                placeholder="Ваше повідомлення..."
+                value={inputText}
+                onChange={(e) => setInputText(e.target.value)}
+                style={{ background: 'transparent', border: 'none', padding: '0.6rem 0.8rem', width: '100%', fontSize: '0.9rem', boxShadow: 'none' }}
+              />
+              <button type="submit" className="btn-primary" style={{ padding: '0.75rem', borderRadius: '10px', height: '40px', width: '40px' }}><Send size={18} /></button>
+            </div>
           </form>
         </aside>
       </div>
@@ -250,6 +262,11 @@ export default function WebinarPage({ params }: { params: Promise<{ id: string }
         @keyframes slideIn {
           from { opacity: 0; transform: translateX(10px); }
           to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes pulse {
+          0% { transform: scale(0.95); opacity: 0.5; }
+          50% { transform: scale(1.05); opacity: 1; }
+          100% { transform: scale(0.95); opacity: 0.5; }
         }
       `}</style>
     </main>

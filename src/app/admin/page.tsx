@@ -157,73 +157,95 @@ export default function AdminPage() {
   }
 
   return (
-    <main style={{ minHeight: '100vh', padding: '2rem' }}>
+    <main style={{ minHeight: '100vh', padding: '2rem', background: 'var(--background)' }}>
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5rem' }}>
-          <h1 style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <Shield color="var(--accent)" size={32} /> Панель Керування
-          </h1>
-          <button className="glass" style={{ padding: '0.5rem 1rem', borderRadius: '8px' }} onClick={() => {
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <div style={{ width: '40px', height: '40px', background: 'var(--accent)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
+              <Shield size={24} />
+            </div>
+            <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--foreground)' }}>Панель керування</h1>
+          </div>
+          <button className="glass" style={{ padding: '0.6rem 1.2rem', borderRadius: '10px', fontSize: '0.9rem', fontWeight: 600, color: 'var(--error)', border: '1px solid rgba(239, 68, 68, 0.2)', background: 'rgba(239, 68, 68, 0.05)' }} onClick={() => {
             sessionStorage.removeItem('admin_auth');
             setIsAuthenticated(false);
           }}>Вийти</button>
         </div>
 
-        <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
-          <button className={`btn-primary ${activeTab !== 'list' ? 'glass' : ''}`} onClick={() => setActiveTab('list')} style={{ background: activeTab === 'list' ? '' : 'transparent' }}>
-            <List size={18} /> Список вебінарів
-          </button>
-          <button className={`btn-primary ${activeTab !== 'create' ? 'glass' : ''}`} onClick={() => setActiveTab('create')} style={{ background: activeTab === 'create' ? '' : 'transparent' }}>
-            <Plus size={18} /> Створити
-          </button>
-          <button className={`btn-primary ${activeTab !== 'library' ? 'glass' : ''}`} onClick={() => setActiveTab('library')} style={{ background: activeTab === 'library' ? '' : 'transparent' }}>
-            <Upload size={18} /> Бібліотека
-          </button>
-          <button className={`btn-primary ${activeTab !== 'codes' ? 'glass' : ''}`} onClick={() => setActiveTab('codes')} style={{ background: activeTab === 'codes' ? '' : 'transparent' }}>
-            <Database size={18} /> Коди
-          </button>
+        <div style={{ display: 'flex', gap: '1rem', marginBottom: '2.5rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
+          {[
+            { id: 'list', icon: <List size={18} />, label: 'Вебінари' },
+            { id: 'create', icon: <Plus size={18} />, label: 'Створити' },
+            { id: 'library', icon: <Upload size={18} />, label: 'Бібліотека' },
+            { id: 'codes', icon: <Database size={18} />, label: 'Слухачі' }
+          ].map(tab => (
+            <button 
+              key={tab.id}
+              className={activeTab === tab.id ? 'btn-primary' : 'glass'} 
+              onClick={() => setActiveTab(tab.id as any)} 
+              style={{ 
+                flex: '1',
+                minWidth: '140px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.5rem',
+                padding: '0.8rem',
+                background: activeTab === tab.id ? 'var(--accent)' : '#fff',
+                color: activeTab === tab.id ? '#fff' : 'var(--text-muted)',
+                border: activeTab === tab.id ? 'none' : '1px solid #e2e8f0'
+              }}
+            >
+              {tab.icon} {tab.label}
+            </button>
+          ))}
         </div>
 
-        <div className="glass" style={{ padding: '2rem' }}>
+        <div className="glass" style={{ padding: '2.5rem', background: '#fff' }}>
           {activeTab === 'list' && (
             <div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
-                {webinars.length === 0 && <p style={{ color: 'var(--text-muted)' }}>Вебінарів ще не створено</p>}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '2rem' }}>
+                {webinars.length === 0 && (
+                  <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '4rem', color: 'var(--text-muted)' }}>
+                    <List size={48} style={{ opacity: 0.2, marginBottom: '1rem' }} />
+                    <p>Вебінарів ще не створено</p>
+                  </div>
+                )}
                 {webinars.map((w: any) => {
                   const now = new Date().getTime();
                   const start = new Date(w.startTime).getTime();
                   const durationValue = parseInt(String(w.duration || 3600));
                   const end = start + durationValue * 1000;
                   
-                  let status = { text: 'Заплановано', color: 'var(--text-muted)' };
+                  let status = { text: 'ЗАПЛАНОВАНО', color: 'var(--text-muted)', bg: '#f1f5f9' };
                   if (now >= start && now < end) {
-                    status = { text: 'ОНЛАЙН', color: '#ff4b4b' };
+                    status = { text: 'В ЕФІРІ', color: '#ef4444', bg: '#fef2f2' };
                   } else if (now >= end) {
-                    status = { text: 'Завершено', color: 'var(--success)' };
+                    status = { text: 'ЗАВЕРШЕНО', color: 'var(--success)', bg: '#ecfdf5' };
                   }
 
                   return (
-                    <div key={w.id} className="glass" style={{ padding: '1.5rem', background: 'rgba(255,255,255,0.03)' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-                        <h3 style={{ fontSize: '1.1rem' }}>{w.title}</h3>
-                        <span style={{ fontSize: '0.7rem', fontWeight: 800, padding: '0.2rem 0.5rem', borderRadius: '4px', background: 'rgba(255,255,255,0.05)', color: status.color, border: `1px solid ${status.color}44` }}>
+                    <div key={w.id} style={{ padding: '1.5rem', borderRadius: '20px', border: '1px solid #f1f5f9', background: '#fff', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.02)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.25rem' }}>
+                        <h3 style={{ fontSize: '1.15rem', fontWeight: 700 }}>{w.title}</h3>
+                        <span style={{ fontSize: '0.65rem', fontWeight: 800, padding: '0.4rem 0.6rem', borderRadius: '6px', background: status.bg, color: status.color, border: `1px solid ${status.color}22` }}>
                           {status.text}
                         </span>
                       </div>
-                      <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Calendar size={14} /> {new Date(w.startTime).toLocaleString()}</div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Play size={14} /> {Math.round(durationValue / 60)} хв.</div>
+                      <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}><Calendar size={16} /> {new Date(w.startTime).toLocaleString('uk-UA')}</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}><Play size={16} /> {Math.round(durationValue / 60)} хвилин</div>
                       </div>
-                      <div style={{ marginTop: '1.5rem', display: 'flex', gap: '1rem' }}>
-                        <Link href={`/webinar/${w.id}`} target="_blank" className="btn-primary" style={{ flex: 1, textAlign: 'center', fontSize: '0.9rem', padding: '0.5rem' }}>
-                          <ExternalLink size={14} /> Перегляд
+                      <div style={{ marginTop: '1.75rem', display: 'flex', gap: '0.75rem' }}>
+                        <Link href={`/webinar/${w.id}`} target="_blank" className="btn-primary" style={{ flex: 1, fontSize: '0.9rem', height: '44px' }}>
+                          <ExternalLink size={16} /> Перегляд
                         </Link>
                         <button 
                           className="glass" 
-                          style={{ padding: '0.5rem', color: 'var(--error)', cursor: 'pointer' }}
+                          style={{ width: '44px', height: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ef4444', border: '1px solid #fee2e2', background: '#fef2f2' }}
                           onClick={() => handleDeleteWebinar(w.id)}
                         >
-                          <Trash2 size={16} />
+                          <Trash2 size={18} />
                         </button>
                       </div>
                     </div>
@@ -234,32 +256,32 @@ export default function AdminPage() {
           )}
 
           {activeTab === 'create' && (
-            <form onSubmit={handleCreateWebinar} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-                <div className="col-span-2">
-                  <label style={{ display: 'block', marginBottom: '0.5rem' }}>Назва вебінару</label>
-                  <input type="text" className="input-field" required value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} />
+            <form onSubmit={handleCreateWebinar} style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+                <div style={{ gridColumn: 'span 2' }}>
+                  <label style={{ display: 'block', marginBottom: '0.6rem', fontSize: '0.9rem', fontWeight: 600 }}>Назва вебінару</label>
+                  <input type="text" className="input-field" placeholder="Вебінар по збору контактів" required value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} style={{ border: '1px solid #e2e8f0' }} />
                 </div>
                 <div>
-                  <label style={{ display: 'block', marginBottom: '0.5rem' }}>Відео URL (або завантажте в бібліотеці)</label>
-                  <input type="text" className="input-field" placeholder="/uploads/video.mp4" value={formData.videoUrl} onChange={e => setFormData({...formData, videoUrl: e.target.value})} />
+                  <label style={{ display: 'block', marginBottom: '0.6rem', fontSize: '0.9rem', fontWeight: 600 }}>Відео URL</label>
+                  <input type="text" className="input-field" placeholder="/uploads/video.mp4" value={formData.videoUrl} onChange={e => setFormData({...formData, videoUrl: e.target.value})} style={{ border: '1px solid #e2e8f0' }} />
                 </div>
                 <div>
-                  <label style={{ display: 'block', marginBottom: '0.5rem' }}>Час початку</label>
-                  <input type="datetime-local" className="input-field" required value={formData.startTime} onChange={e => setFormData({...formData, startTime: e.target.value})} />
+                  <label style={{ display: 'block', marginBottom: '0.6rem', fontSize: '0.9rem', fontWeight: 600 }}>Початок</label>
+                  <input type="datetime-local" className="input-field" required value={formData.startTime} onChange={e => setFormData({...formData, startTime: e.target.value})} style={{ border: '1px solid #e2e8f0' }} />
                 </div>
                 <div>
-                  <label style={{ display: 'block', marginBottom: '0.5rem' }}>Глядачі (база)</label>
-                  <input type="number" className="input-field" value={formData.fakeViewersBase} onChange={e => setFormData({...formData, fakeViewersBase: e.target.value})} />
+                  <label style={{ display: 'block', marginBottom: '0.6rem', fontSize: '0.9rem', fontWeight: 600 }}>Базова к-сть глядачів</label>
+                  <input type="number" className="input-field" value={formData.fakeViewersBase} onChange={e => setFormData({...formData, fakeViewersBase: e.target.value})} style={{ border: '1px solid #e2e8f0' }} />
                 </div>
               </div>
               
-              <div style={{ marginTop: '1rem' }}>
-                <label style={{ display: 'block', marginBottom: '1rem', fontWeight: 600 }}>Чат пресети (авто-повідомлення)</label>
-                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>Формат: [секунда] | [ім'я] | [текст] (наприклад: 10 | Іван | Всім привіт!)</p>
+              <div>
+                <label style={{ display: 'block', marginBottom: '0.6rem', fontSize: '0.9rem', fontWeight: 600 }}>Чат пресети</label>
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>Формат: [секунда] | [ім'я] | [текст]</p>
                 <textarea 
                   className="input-field" 
-                  style={{ height: '150px', fontFamily: 'monospace' }} 
+                  style={{ height: '180px', fontFamily: 'monospace', fontSize: '0.9rem', border: '1px solid #e2e8f0' }} 
                   placeholder="10 | Іван | Привіт!&#10;15 | Марія | Чи буде запис?"
                   onChange={(e) => {
                     const lines = e.target.value.split('\n');
@@ -275,28 +297,35 @@ export default function AdminPage() {
                 />
               </div>
 
-              <button type="submit" className="btn-primary" style={{ alignSelf: 'flex-start' }}><Plus size={18} /> Створити автовебінар</button>
+              <button type="submit" className="btn-primary" style={{ alignSelf: 'flex-start', padding: '1rem 2rem' }}>
+                Створити автовебінар
+              </button>
             </form>
           )}
 
           {activeTab === 'library' && (
             <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2rem' }}>
-                <h3>Ваші відео</h3>
-                <label className="btn-primary" style={{ cursor: 'pointer', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                  <Upload size={18} /> {uploading ? 'Завантаження...' : 'Завантажити нове'}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5rem' }}>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 700 }}>Медіа бібліотека</h3>
+                <label className="btn-primary" style={{ cursor: 'pointer', height: '44px' }}>
+                  <Upload size={18} /> {uploading ? 'Завантаження...' : 'Нове відео'}
                   <input type="file" hidden onChange={handleFileUpload} accept="video/*" />
                 </label>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1.5rem' }}>
-                {uploadedFiles.length === 0 && <p style={{ color: 'var(--text-muted)' }}>Відео поки немає</p>}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '2rem' }}>
+                {uploadedFiles.length === 0 && (
+                  <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '4rem', color: 'var(--text-muted)' }}>
+                    <Play size={48} style={{ opacity: 0.1, marginBottom: '1rem' }} />
+                    <p>Тут з'являться ваші завантажені відео</p>
+                  </div>
+                )}
                 {uploadedFiles.map(file => (
-                  <div key={file.url} className="glass" style={{ padding: '1rem', textAlign: 'center' }}>
-                    <div style={{ height: '100px', background: '#000', borderRadius: '8px', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <Play size={24} />
+                  <div key={file.url} style={{ padding: '1.25rem', borderRadius: '16px', border: '1px solid #f1f5f9', background: '#fff', textAlign: 'center' }}>
+                    <div style={{ height: '120px', background: '#f8fafc', borderRadius: '12px', marginBottom: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent)' }}>
+                      <Play size={32} />
                     </div>
-                    <p style={{ fontSize: '0.8rem', overflow: 'hidden', textOverflow: 'ellipsis' }}>{file.name}</p>
-                    <button className="btn-primary" style={{ fontSize: '0.7rem', padding: '0.3rem 0.5rem', marginTop: '0.5rem' }} onClick={() => setFormData({...formData, videoUrl: file.url})}>Вибрати</button>
+                    <p style={{ fontSize: '0.85rem', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: '1rem' }}>{file.name}</p>
+                    <button className="btn-primary" style={{ width: '100%', fontSize: '0.85rem', height: '36px', background: 'transparent', color: 'var(--accent)', border: '1px solid var(--accent)' }} onClick={() => { setFormData({...formData, videoUrl: file.url}); setActiveTab('create'); }}>Обрати відео</button>
                   </div>
                 ))}
               </div>
@@ -304,33 +333,35 @@ export default function AdminPage() {
           )}
 
           {activeTab === 'codes' && (
-             <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2rem' }}>
-                  <h3>Реєстрації (Коди доступу)</h3>
-                  <button className="btn-primary" onClick={fetchData}>Оновити список</button>
+             <div style={{ animation: 'fadeIn 0.4s ease-out' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5rem' }}>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: 700 }}>Список реєстрацій</h3>
+                  <button className="glass" style={{ padding: '0.6rem 1.2rem', color: 'var(--accent)', fontWeight: 600, border: '1px solid var(--accent-glow)' }} onClick={fetchData}>Оновити дані</button>
                 </div>
                 
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                  <thead>
-                    <tr style={{ textAlign: 'left', borderBottom: '1px solid var(--border)' }}>
-                      <th style={{ padding: '1rem' }}>Код</th>
-                      <th style={{ padding: '1rem' }}>Ім’я</th>
-                      <th style={{ padding: '1rem' }}>Контакт</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {codes.length === 0 && (
-                       <tr><td colSpan={3} style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>Реєстрацій поки немає</td></tr>
-                    )}
-                    {codes.map((c: any, i: number) => (
-                      <tr key={i} style={{ borderBottom: '1px solid var(--border)' }}>
-                        <td style={{ padding: '1rem', fontWeight: 700, color: 'var(--accent)' }}>{c.code}</td>
-                        <td style={{ padding: '1rem' }}>{c.usedBy || '—'}</td>
-                        <td style={{ padding: '1rem' }}>{c.contact || '—'}</td>
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0 0.5rem' }}>
+                    <thead>
+                      <tr style={{ textAlign: 'left', color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: 600 }}>
+                        <th style={{ padding: '1rem' }}>КОД ДОСТУПУ</th>
+                        <th style={{ padding: '1rem' }}>ІМ'Я ГЛЯДАЧА</th>
+                        <th style={{ padding: '1rem' }}>КОНТАКТИ</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {codes.length === 0 && (
+                         <tr><td colSpan={3} style={{ padding: '4rem', textAlign: 'center', color: 'var(--text-muted)' }}>Дані відсутні</td></tr>
+                      )}
+                      {codes.map((c: any, i: number) => (
+                        <tr key={i} style={{ background: '#f8fafc' }}>
+                          <td style={{ padding: '1.25rem', fontWeight: 800, color: 'var(--accent)', borderRadius: '12px 0 0 12px' }}>{c.code}</td>
+                          <td style={{ padding: '1.25rem', fontWeight: 600 }}>{c.usedBy || <span style={{ opacity: 0.3 }}>—</span>}</td>
+                          <td style={{ padding: '1.25rem', color: 'var(--text-muted)', borderRadius: '0 12px 12px 0' }}>{c.contact || <span style={{ opacity: 0.3 }}>—</span>}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
              </div>
           )}
         </div>
