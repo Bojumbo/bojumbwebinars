@@ -12,6 +12,7 @@ interface Message {
 
 export default function WebinarPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = React.use(params);
+  const [mounted, setMounted] = useState(false);
   const [isLive, setIsLive] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
   const [countdown, setCountdown] = useState<string | null>(null);
@@ -26,7 +27,7 @@ export default function WebinarPage({ params }: { params: Promise<{ id: string }
   const [webinarData, setWebinarData] = useState<any>(null);
 
   useEffect(() => {
-    // Детекція мобілки
+    setMounted(true);
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
     window.addEventListener('resize', checkMobile);
@@ -51,7 +52,7 @@ export default function WebinarPage({ params }: { params: Promise<{ id: string }
   const isFinishedRef = useRef(false);
 
   useEffect(() => {
-    if (!webinarData || isFinished) return;
+    if (!webinarData || isFinished || !mounted) return;
 
     const timer = setInterval(() => {
       if (isFinished || isFinishedRef.current) {
@@ -130,7 +131,7 @@ export default function WebinarPage({ params }: { params: Promise<{ id: string }
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [webinarData, isFinished, hasInteracted]);
+  }, [webinarData, isFinished, hasInteracted, mounted]);
 
   const sendMessage = (e: React.FormEvent) => {
     e.preventDefault();
@@ -152,7 +153,7 @@ export default function WebinarPage({ params }: { params: Promise<{ id: string }
     return (match && match[2].length === 11) ? match[2] : null;
   };
 
-  if (!webinarData) return <div style={{ textAlign: 'center', padding: '5rem' }}>Завантаження...</div>;
+  if (!mounted || !webinarData) return <div style={{ textAlign: 'center', padding: '5rem' }}>Завантаження...</div>;
 
   const ytId = getYouTubeId(webinarData.videoUrl);
 
@@ -162,11 +163,11 @@ export default function WebinarPage({ params }: { params: Promise<{ id: string }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
         .webinar-grid { display: grid; grid-template-columns: 1fr 350px; flex: 1; overflow: hidden; }
         @media (max-width: 768px) {
-          .webinar-grid { grid-template-columns: 1fr; display: flex; flexDirection: column; overflow-y: auto; }
+          .webinar-grid { grid-template-columns: 1fr; display: flex; flex-direction: column; overflow-y: auto; }
           .video-container { height: 250px !important; flex: none !important; }
           .chat-aside { height: 400px !important; flex: none !important; }
           header { padding: 0.75rem 1rem !important; }
-          h1 { fontSize: 1rem !important; }
+          h1 { font-size: 1rem !important; }
         }
       `}</style>
       

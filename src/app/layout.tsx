@@ -1,19 +1,24 @@
-import type { Metadata } from "next";
-import "./globals.css";
+import './globals.css';
+import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
+
+const inter = Inter({ subsets: ['latin', 'cyrillic'] });
 
 export const metadata: Metadata = {
-  title: "AutoWebinar - Платформа для автовебінарів",
-  description: "Дивіться трансляцію в прямому ефірі",
+  title: 'Bojumbo Webinars',
+  description: 'Професійна платформа для автовебінарів',
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
-    <html lang="uk">
-      <body style={{ margin: 0, padding: 0 }}>{children}</body>
+    <html lang="uk" suppressHydrationWarning>
+      <body className={inter.className} suppressHydrationWarning>
+        {children}
+      </body>
     </html>
   );
 }
