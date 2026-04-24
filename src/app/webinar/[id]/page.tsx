@@ -65,10 +65,24 @@ export default function WebinarPage({ params }: { params: Promise<{ id: string }
         const mins = Math.floor(diff / 60000);
         const secs = Math.floor((diff % 60000) / 1000);
         setCountdown(`${mins}:${secs < 10 ? '0' : ''}${secs}`);
+
+        // Ramp up viewers in the last 60 seconds
+        if (diff <= 60000) {
+          const progress = 1 - (diff / 60000);
+          const base = parseInt(webinarData.fakeViewersBase || 0);
+          setViewerCount(Math.floor(base * progress));
+        } else {
+          setViewerCount(0);
+        }
       } else if (Math.abs(diff) < durationMs) {
         setIsLive(true);
         setCountdown(null);
         
+        // Fluctuate viewers +/- 3-5
+        const base = parseInt(webinarData.fakeViewersBase || 0);
+        const fluctuation = Math.floor(Math.random() * 11) - 5; // -5 to +5
+        setViewerCount(Math.max(0, base + fluctuation));
+
         if (videoRef.current) {
           const drift = Math.abs(videoRef.current.currentTime - offset);
           const videoDuration = videoRef.current.duration;
@@ -106,9 +120,17 @@ export default function WebinarPage({ params }: { params: Promise<{ id: string }
         setCountdown("Завершено");
         setIsFinished(true);
         isFinishedRef.current = true;
-      }
 
-      setViewerCount(Math.max(0, webinarData.fakeViewersBase || 0));
+        // Ramp down viewers after completion (over 60 seconds)
+        const afterEnd = Math.abs(diff) - durationMs;
+        if (afterEnd <= 60000) {
+          const progress = 1 - (afterEnd / 60000);
+          const base = parseInt(webinarData.fakeViewersBase || 0);
+          setViewerCount(Math.floor(base * progress));
+        } else {
+          setViewerCount(0);
+        }
+      }
     }, 1000);
 
     return () => clearInterval(timer);
