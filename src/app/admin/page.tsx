@@ -264,65 +264,72 @@ export default function AdminPage() {
             <form onSubmit={handleCreateWebinar} style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
                 <div style={{ gridColumn: 'span 2' }}>
-                  <label style={{ display: 'block', marginBottom: '0.6rem', fontSize: '0.9rem', fontWeight: 600 }}>Назва вебінару</label>
-                  <input type="text" className="input-field" placeholder="Назва вебінару" required value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} style={{ border: '1px solid #e2e8f0' }} />
+                  <label style={{ display: 'block', marginBottom: '0.6rem', fontSize: '0.9rem', fontWeight: 600, color: '#64748b' }}>Назва вебінару</label>
+                  <input 
+                    type="text" 
+                    className="input-field" 
+                    placeholder="Назва вашого заходу" 
+                    required 
+                    value={formData.title} 
+                    onChange={e => setFormData({...formData, title: e.target.value})} 
+                    style={{ border: '1px solid #e2e8f0', color: '#1e293b' }} 
+                  />
                 </div>
 
                 <div style={{ gridColumn: 'span 2' }}>
-                   <label style={{ display: 'block', marginBottom: '0.6rem', fontSize: '0.9rem', fontWeight: 600 }}>Виберіть відеo</label>
-                   <div style={{ display: 'flex', gap: '1rem' }}>
-                     <select 
-                       className="input-field" 
-                       style={{ flex: 1, border: '1px solid #e2e8f0', cursor: 'pointer' }}
-                       value={uploadedFiles.some(f => f.url === formData.videoUrl) ? formData.videoUrl : "custom"}
-                       onChange={(e) => {
-                         if (e.target.value !== "custom") {
-                           setFormData({...formData, videoUrl: e.target.value});
-                         } else {
-                           setFormData({...formData, videoUrl: ""});
-                         }
-                       }}
-                     >
-                       <option value="custom">🔗 Власне посилання (URL)</option>
-                       <optgroup label="Ваша бібліотека">
-                         {uploadedFiles.map(file => (
-                           <option key={file.url} value={file.url}>📹 {file.name}</option>
-                         ))}
-                       </optgroup>
-                     </select>
-                   </div>
+                   <label style={{ display: 'block', marginBottom: '0.6rem', fontSize: '0.9rem', fontWeight: 600, color: '#64748b' }}>Виберіть відеo</label>
+                   <select 
+                     className="input-field" 
+                     style={{ border: '1px solid #e2e8f0', color: '#1e293b', cursor: 'pointer', background: '#fff' }}
+                     value={uploadedFiles.some(f => f.url === formData.videoUrl) ? formData.videoUrl : "custom"}
+                     onChange={(e) => {
+                       if (e.target.value !== "custom") {
+                         setFormData({...formData, videoUrl: e.target.value});
+                       } else {
+                         setFormData({...formData, videoUrl: ""});
+                       }
+                     }}
+                   >
+                     <option value="custom" style={{ color: '#1e293b' }}>🔗 Власне посилання (URL / YouTube)</option>
+                     {uploadedFiles.length > 0 ? (
+                       uploadedFiles.map(file => (
+                         <option key={file.url} value={file.url} style={{ color: '#1e293b' }}>📹 {file.name}</option>
+                       ))
+                     ) : (
+                       <option disabled style={{ color: '#94a3b8' }}>— Бібліотека порожня —</option>
+                     )}
+                   </select>
                 </div>
 
                 {(!uploadedFiles.some(f => f.url === formData.videoUrl) || formData.videoUrl === "") && (
-                  <div style={{ gridColumn: 'span 2', animation: 'fadeIn 0.3s ease-out' }}>
-                    <label style={{ display: 'block', marginBottom: '0.6rem', fontSize: '0.9rem', fontWeight: 600 }}>Посилання на відео (MP4 / YouTube / ітд)</label>
+                  <div style={{ gridColumn: 'span 2' }}>
+                    <label style={{ display: 'block', marginBottom: '0.6rem', fontSize: '0.9rem', fontWeight: 600, color: '#64748b' }}>Посилання на відео</label>
                     <input 
                       type="text" 
                       className="input-field" 
                       placeholder="https://example.com/video.mp4" 
                       value={formData.videoUrl} 
                       onChange={e => setFormData({...formData, videoUrl: e.target.value})} 
-                      style={{ border: '1px solid #e2e8f0' }} 
+                      style={{ border: '1px solid #e2e8f0', color: '#1e293b' }} 
                     />
                   </div>
                 )}
 
                 <div>
-                  <label style={{ display: 'block', marginBottom: '0.6rem', fontSize: '0.9rem', fontWeight: 600 }}>Початок</label>
-                  <input type="datetime-local" className="input-field" required value={formData.startTime} onChange={e => setFormData({...formData, startTime: e.target.value})} style={{ border: '1px solid #e2e8f0' }} />
+                  <label style={{ display: 'block', marginBottom: '0.6rem', fontSize: '0.9rem', fontWeight: 600, color: '#64748b' }}>Початок</label>
+                  <input type="datetime-local" className="input-field" required value={formData.startTime} onChange={e => setFormData({...formData, startTime: e.target.value})} style={{ border: '1px solid #e2e8f0', color: '#1e293b' }} />
                 </div>
                 <div>
-                  <label style={{ display: 'block', marginBottom: '0.6rem', fontSize: '0.9rem', fontWeight: 600 }}>Базова к-сть глядачів</label>
-                  <input type="number" className="input-field" value={formData.fakeViewersBase} onChange={e => setFormData({...formData, fakeViewersBase: e.target.value})} style={{ border: '1px solid #e2e8f0' }} />
+                  <label style={{ display: 'block', marginBottom: '0.6rem', fontSize: '0.9rem', fontWeight: 600, color: '#64748b' }}>Базова к-сть глядачів</label>
+                  <input type="number" className="input-field" value={formData.fakeViewersBase} onChange={e => setFormData({...formData, fakeViewersBase: e.target.value})} style={{ border: '1px solid #e2e8f0', color: '#1e293b' }} />
                 </div>
               </div>
               
               <div>
-                <label style={{ display: 'block', marginBottom: '0.6rem', fontSize: '0.9rem', fontWeight: 600 }}>Чат пресети</label>
-                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>Формат: [секунда] | [ім'я] | [текст]</p>
+                <label style={{ display: 'block', marginBottom: '0.6rem', fontSize: '0.9rem', fontWeight: 600, color: '#64748b' }}>Чат пресети</label>
                 <textarea 
                   className="input-field" 
-                  style={{ height: '180px', fontFamily: 'monospace', fontSize: '0.9rem', border: '1px solid #e2e8f0' }} 
+                  style={{ height: '180px', fontFamily: 'monospace', fontSize: '0.9rem', border: '1px solid #e2e8f0', color: '#1e293b' }} 
                   placeholder="10 | Іван | Привіт!&#10;15 | Марія | Чи буде запис?"
                   onChange={(e) => {
                     const lines = e.target.value.split('\n');
