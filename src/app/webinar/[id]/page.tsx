@@ -91,7 +91,8 @@ export default function WebinarPage({ params }: { params: Promise<{ id: string }
           if (offset < videoRef.current.duration && drift > 5) {
             videoRef.current.currentTime = offset;
           }
-          if (hasInteracted && videoRef.current.paused && !videoRef.current.ended) {
+          // Автозапуск для Chrome (працює завдяки атрибуту muted)
+          if (videoRef.current.paused && !videoRef.current.ended) {
             videoRef.current.play().catch(() => {});
           }
         }
@@ -211,7 +212,9 @@ export default function WebinarPage({ params }: { params: Promise<{ id: string }
                   src={webinarData.videoUrl} 
                   style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                   playsInline
+                  autoPlay
                   muted={isMuted}
+                  preload="auto"
                   onPlay={() => setHasInteracted(true)}
                 />
               )}
@@ -223,7 +226,12 @@ export default function WebinarPage({ params }: { params: Promise<{ id: string }
                     setIsMuted(false); 
                     if (videoRef.current) {
                       videoRef.current.muted = false;
-                      videoRef.current.play().catch(() => {});
+                      videoRef.current.volume = 1.0;
+                      videoRef.current.play().catch(() => {
+                        // Повторна спроба, якщо Chrome блокує
+                        videoRef.current!.muted = false;
+                        videoRef.current!.play();
+                      });
                     }
                   }}
                   style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.7)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', flexDirection: 'column', gap: '1rem', zIndex: 20 }}
