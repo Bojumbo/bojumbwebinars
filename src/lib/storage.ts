@@ -1,7 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 
-const DB_PATH = path.join(process.cwd(), 'data.json');
+const DB_PATH = path.join(process.cwd(), 'data', 'data.json');
+const DATA_DIR = path.join(process.cwd(), 'data');
 
 export interface Webinar {
   id: string;
@@ -49,18 +50,42 @@ const initialDB: DB = {
 };
 
 function readDB(): DB {
-  if (!fs.existsSync(DB_PATH)) {
-    fs.writeFileSync(DB_PATH, JSON.stringify(initialDB, null, 2));
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+
+    if (!fs.existsSync(DB_PATH)) {
+      fs.writeFileSync(DB_PATH, JSON.stringify(initialDB, null, 2));
+      return initialDB;
+    }
+
+    const data = fs.readFileSync(DB_PATH, 'utf-8');
+    if (!data || data.trim() === '') {
+      fs.writeFileSync(DB_PATH, JSON.stringify(initialDB, null, 2));
+      return initialDB;
+    }
+
+    const parsed = JSON.parse(data);
+    if (!parsed.library) parsed.library = [];
+    if (!parsed.codes) parsed.codes = [];
+    if (!parsed.webinars) parsed.webinars = [];
+    return parsed;
+  } catch (error) {
+    console.error('Error reading database:', error);
     return initialDB;
   }
-  const data = fs.readFileSync(DB_PATH, 'utf-8');
-  const parsed = JSON.parse(data);
-  if (!parsed.library) parsed.library = [];
-  return parsed;
 }
 
 function writeDB(data: DB) {
-  fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2));
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+    fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2));
+  } catch (error) {
+    console.error('Error writing database:', error);
+  }
 }
 
 export const db = {

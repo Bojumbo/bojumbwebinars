@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Users, Send, Clock, Play } from 'lucide-react';
+import { Users, Send, Clock, Play, Maximize } from 'lucide-react';
 
 interface Message {
   id: string;
@@ -20,6 +20,7 @@ export default function WebinarPage({ params }: { params: Promise<{ id: string }
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const videoRef = useRef<HTMLVideoElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [hasInteracted, setHasInteracted] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
@@ -91,7 +92,6 @@ export default function WebinarPage({ params }: { params: Promise<{ id: string }
           if (offset < videoRef.current.duration && drift > 5) {
             videoRef.current.currentTime = offset;
           }
-          // Автозапуск для Chrome (працює завдяки атрибуту muted)
           if (videoRef.current.paused && !videoRef.current.ended) {
             videoRef.current.play().catch(() => {});
           }
@@ -147,6 +147,15 @@ export default function WebinarPage({ params }: { params: Promise<{ id: string }
     setInputText('');
   };
 
+  const toggleFullScreen = () => {
+    if (!containerRef.current) return;
+    if (!document.fullscreenElement) {
+      containerRef.current.requestFullscreen().catch(() => {});
+    } else {
+      document.exitFullscreen();
+    }
+  };
+
   const getYouTubeId = (url: string) => {
     if (!url) return null;
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
@@ -184,7 +193,11 @@ export default function WebinarPage({ params }: { params: Promise<{ id: string }
       </header>
 
       <div className="webinar-grid">
-        <div className="video-container" style={{ background: '#000', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div 
+          ref={containerRef}
+          className="video-container" 
+          style={{ background: '#000', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+        >
           {!isLive && !isFinished && (
             <div style={{ textAlign: 'center', color: '#fff', padding: '2rem' }}>
               <Clock size={isMobile ? 40 : 64} style={{ margin: '0 auto 1rem', opacity: 0.5 }} />
@@ -195,6 +208,15 @@ export default function WebinarPage({ params }: { params: Promise<{ id: string }
           
           {isLive && (
             <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+              {isLive && hasInteracted && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); toggleFullScreen(); }}
+                  style={{ position: 'absolute', bottom: '15px', right: '15px', zIndex: 25, background: 'rgba(0,0,0,0.5)', border: 'none', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', cursor: 'pointer' }}
+                >
+                  <Maximize size={20} />
+                </button>
+              )}
+
               {ytId ? (
                 <iframe
                   width="100%"
@@ -228,7 +250,6 @@ export default function WebinarPage({ params }: { params: Promise<{ id: string }
                       videoRef.current.muted = false;
                       videoRef.current.volume = 1.0;
                       videoRef.current.play().catch(() => {
-                        // Повторна спроба, якщо Chrome блокує
                         videoRef.current!.muted = false;
                         videoRef.current!.play();
                       });
