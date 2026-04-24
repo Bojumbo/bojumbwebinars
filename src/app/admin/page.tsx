@@ -264,7 +264,7 @@ export default function AdminPage() {
             <form onSubmit={handleCreateWebinar} style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
                 <div style={{ gridColumn: 'span 2' }}>
-                  <label style={{ display: 'block', marginBottom: '0.6rem', fontSize: '0.9rem', fontWeight: 600, color: '#64748b' }}>Назва вебінару</label>
+                  <label style={{ display: 'block', marginBottom: '0.6rem', fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-muted)' }}>Назва вебінару</label>
                   <input 
                     type="text" 
                     className="input-field" 
@@ -272,15 +272,13 @@ export default function AdminPage() {
                     required 
                     value={formData.title} 
                     onChange={e => setFormData({...formData, title: e.target.value})} 
-                    style={{ border: '1px solid #e2e8f0', color: '#1e293b' }} 
                   />
                 </div>
 
                 <div style={{ gridColumn: 'span 2' }}>
-                   <label style={{ display: 'block', marginBottom: '0.6rem', fontSize: '0.9rem', fontWeight: 600, color: '#64748b' }}>Виберіть відеo</label>
+                   <label style={{ display: 'block', marginBottom: '0.6rem', fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-muted)' }}>Виберіть відеo</label>
                    <select 
                      className="input-field" 
-                     style={{ border: '1px solid #e2e8f0', color: '#1e293b', cursor: 'pointer', background: '#fff' }}
                      value={uploadedFiles.some(f => f.url === formData.videoUrl) ? formData.videoUrl : "custom"}
                      onChange={(e) => {
                        if (e.target.value !== "custom") {
@@ -290,46 +288,45 @@ export default function AdminPage() {
                        }
                      }}
                    >
-                     <option value="custom" style={{ color: '#1e293b' }}>🔗 Власне посилання (URL / YouTube)</option>
+                     <option value="custom">🔗 Власне посилання (URL / YouTube)</option>
                      {uploadedFiles.length > 0 ? (
                        uploadedFiles.map(file => (
-                         <option key={file.url} value={file.url} style={{ color: '#1e293b' }}>📹 {file.name}</option>
+                         <option key={file.url} value={file.url}>📹 {file.name}</option>
                        ))
                      ) : (
-                       <option disabled style={{ color: '#94a3b8' }}>— Бібліотека порожня —</option>
+                       <option disabled>— Бібліотека порожня —</option>
                      )}
                    </select>
                 </div>
 
                 {(!uploadedFiles.some(f => f.url === formData.videoUrl) || formData.videoUrl === "") && (
                   <div style={{ gridColumn: 'span 2' }}>
-                    <label style={{ display: 'block', marginBottom: '0.6rem', fontSize: '0.9rem', fontWeight: 600, color: '#64748b' }}>Посилання на відео</label>
+                    <label style={{ display: 'block', marginBottom: '0.6rem', fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-muted)' }}>Посилання на відео</label>
                     <input 
                       type="text" 
                       className="input-field" 
                       placeholder="https://example.com/video.mp4" 
                       value={formData.videoUrl} 
                       onChange={e => setFormData({...formData, videoUrl: e.target.value})} 
-                      style={{ border: '1px solid #e2e8f0', color: '#1e293b' }} 
                     />
                   </div>
                 )}
 
                 <div>
-                  <label style={{ display: 'block', marginBottom: '0.6rem', fontSize: '0.9rem', fontWeight: 600, color: '#64748b' }}>Початок</label>
-                  <input type="datetime-local" className="input-field" required value={formData.startTime} onChange={e => setFormData({...formData, startTime: e.target.value})} style={{ border: '1px solid #e2e8f0', color: '#1e293b' }} />
+                  <label style={{ display: 'block', marginBottom: '0.6rem', fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-muted)' }}>Початок</label>
+                  <input type="datetime-local" className="input-field" required value={formData.startTime} onChange={e => setFormData({...formData, startTime: e.target.value})} />
                 </div>
                 <div>
-                  <label style={{ display: 'block', marginBottom: '0.6rem', fontSize: '0.9rem', fontWeight: 600, color: '#64748b' }}>Базова к-сть глядачів</label>
-                  <input type="number" className="input-field" value={formData.fakeViewersBase} onChange={e => setFormData({...formData, fakeViewersBase: e.target.value})} style={{ border: '1px solid #e2e8f0', color: '#1e293b' }} />
+                  <label style={{ display: 'block', marginBottom: '0.6rem', fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-muted)' }}>Базова к-сть глядачів</label>
+                  <input type="number" className="input-field" value={formData.fakeViewersBase} onChange={e => setFormData({...formData, fakeViewersBase: e.target.value})} />
                 </div>
               </div>
               
               <div>
-                <label style={{ display: 'block', marginBottom: '0.6rem', fontSize: '0.9rem', fontWeight: 600, color: '#64748b' }}>Чат пресети</label>
+                <label style={{ display: 'block', marginBottom: '0.6rem', fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-muted)' }}>Чат пресети</label>
                 <textarea 
                   className="input-field" 
-                  style={{ height: '180px', fontFamily: 'monospace', fontSize: '0.9rem', border: '1px solid #e2e8f0', color: '#1e293b' }} 
+                  style={{ height: '180px', fontFamily: 'monospace' }} 
                   placeholder="10 | Іван | Привіт!&#10;15 | Марія | Чи буде запис?"
                   onChange={(e) => {
                     const lines = e.target.value.split('\n');
