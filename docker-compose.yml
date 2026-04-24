@@ -4,16 +4,20 @@ services:
   web:
     build: .
     restart: always
+    networks:
+      - webinar-net
     environment:
       - TELEGRAM_TOKEN=${TELEGRAM_TOKEN}
       - BOT_SECRET=${BOT_SECRET}
-      - WEBSITE_URL=https://webinar.bojumbo.com
+      - WEBSITE_URL=https://webinars.bojumbohost.pp.ua
     volumes:
       - storage-data:/app/data
 
   bot:
     build: .
     restart: always
+    networks:
+      - webinar-net
     command: node bot.js
     environment:
       - TELEGRAM_TOKEN=${TELEGRAM_TOKEN}
@@ -25,9 +29,15 @@ services:
   tunnel:
     image: cloudflare/cloudflared:latest
     restart: always
+    networks:
+      - webinar-net
     environment:
       - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
     command: tunnel --no-autoupdate run
+
+networks:
+  webinar-net:
+    driver: bridge
 
 volumes:
   storage-data:
