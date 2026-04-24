@@ -12,6 +12,7 @@ export default function AdminPage() {
   const [codes, setCodes] = useState([]);
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [formData, setFormData] = useState({
     title: '',
     videoUrl: '',
@@ -40,9 +41,7 @@ export default function AdminPage() {
       if (resC.ok) setCodes(await resC.json());
       const resL = await fetch('/api/admin/library');
       if (resL.ok) setUploadedFiles(await resL.json());
-    } catch (e) {
-      console.error(e);
-    }
+    } catch (e) { console.error(e); }
   };
 
   const handleCreateWebinar = async (e: React.FormEvent) => {
@@ -78,20 +77,40 @@ export default function AdminPage() {
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
     setUploading(true);
+    setUploadProgress(0);
+
     const fd = new FormData();
     fd.append('file', file);
-    try {
-      const res = await fetch('/api/admin/upload', { method: 'POST', body: fd });
-      if (res.ok) {
-        alert('Відео завантажено!');
-        fetchData();
+
+    const xhr = new XMLHttpRequest();
+    
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable) {
+        const percent = Math.round((event.loaded / event.total) * 100);
+        setUploadProgress(percent);
       }
-    } catch (err) {
-      alert('Помилка завантаження');
-    } finally {
+    };
+
+    xhr.onload = () => {
+      if (xhr.status === 200) {
+        alert('Відео завантажено успішно!');
+        fetchData();
+      } else {
+        alert('Помилка завантаження');
+      }
       setUploading(false);
-    }
+      setUploadProgress(0);
+    };
+
+    xhr.onerror = () => {
+      alert('Сталася помилка мережі');
+      setUploading(false);
+    };
+
+    xhr.open('POST', '/api/admin/upload');
+    xhr.send(fd);
   };
 
   if (!isAuthenticated) {
@@ -148,10 +167,10 @@ export default function AdminPage() {
 
           {activeTab === 'create' && (
             <form onSubmit={handleCreateWebinar} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-              <label style={{ fontWeight: 600 }}>Назва вебінару</label>
+              <label style={{ fontWeight: 600, color: '#64748b' }}>Назва вебінару</label>
               <input type="text" className="input-field" required value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} />
               
-              <label style={{ fontWeight: 600 }}>Джерело відео</label>
+              <label style={{ fontWeight: 600, color: '#64748b' }}>Джерело відео</label>
               <select className="input-field" value={uploadedFiles.some(f => f.url === formData.videoUrl) ? formData.videoUrl : "custom"} onChange={(e) => setFormData({...formData, videoUrl: e.target.value === 'custom' ? '' : e.target.value})}>
                 <option value="custom">🔗 Власне посилання (URL / YouTube)</option>
                 {uploadedFiles.map(f => <option key={f.url} value={f.url}>📹 {f.name}</option>)}
@@ -159,13 +178,13 @@ export default function AdminPage() {
 
               <input type="text" className="input-field" placeholder="URL відео" value={formData.videoUrl} onChange={e => setFormData({...formData, videoUrl: e.target.value})} />
               
-              <label style={{ fontWeight: 600 }}>Час початку</label>
+              <label style={{ fontWeight: 600, color: '#64748b' }}>Час початку</label>
               <input type="datetime-local" className="input-field" required value={formData.startTime} onChange={e => setFormData({...formData, startTime: e.target.value})} />
 
-              <label style={{ fontWeight: 600 }}>Фейкові глядачі (база)</label>
+              <label style={{ fontWeight: 600, color: '#64748b' }}>Фейкові глядачі (база)</label>
               <input type="number" className="input-field" value={formData.fakeViewersBase} onChange={e => setFormData({...formData, fakeViewersBase: e.target.value})} />
 
-              <label style={{ fontWeight: 600 }}>Чат пресети (Формат: сек | ім'я | текст)</label>
+              <label style={{ fontWeight: 600, color: '#64748b' }}>Чат пресети (сек | ім'я | текст)</label>
               <textarea 
                 className="input-field" 
                 style={{ height: '150px', fontFamily: 'monospace' }} 
@@ -187,16 +206,23 @@ export default function AdminPage() {
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2rem' }}>
                 <h3>Бібліотека відео</h3>
-                <label className="btn-primary" style={{ cursor: 'pointer' }}>
-                  <Upload size={18} /> {uploading ? 'Завантаження...' : 'Завантажити відео'}
-                  <input type="file" hidden onChange={handleFileUpload} accept="video/*" />
+                <label className="btn-primary" style={{ cursor: 'pointer', opacity: uploading ? 0.6 : 1 }}>
+                  <Upload size={18} /> {uploading ? `Завантаження ${uploadProgress}%` : 'Завантажити відео'}
+                  <input type="file" hidden onChange={handleFileUpload} accept="video/*" disabled={uploading} />
                 </label>
               </div>
+
+              {uploading && (
+                <div style={{ height: '8px', background: '#f1f5f9', borderRadius: '4px', marginBottom: '2rem', overflow: 'hidden' }}>
+                  <div style={{ height: '100%', width: `${uploadProgress}%`, background: '#4f46e5', transition: 'width 0.3s ease' }} />
+                </div>
+              )}
+
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem' }}>
                 {uploadedFiles.map(file => (
                   <div key={file.url} className="glass" style={{ padding: '1rem', textAlign: 'center' }}>
                     <Play size={32} style={{ margin: '0 auto 0.5rem', color: '#4f46e5' }} />
-                    <p style={{ fontSize: '0.8rem', fontWeight: 600, overflow: 'hidden' }}>{file.name}</p>
+                    <p style={{ fontSize: '0.8rem', fontWeight: 600, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{file.name}</p>
                     <button className="btn-primary" style={{ width: '100%', marginTop: '1rem', fontSize: '0.75rem', height: '32px' }} onClick={() => { setFormData({...formData, videoUrl: file.url}); setActiveTab('create'); }}>Обрати</button>
                   </div>
                 ))}
