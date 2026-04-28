@@ -60,13 +60,21 @@ bot.on('message', async (msg) => {
         headers: { 'Authorization': `Bearer ${SECRET_KEY}` }
       });
 
-      const { webinar, link } = res.data;
-
       if (webinar) {
-        const startTime = new Date(webinar.startTime).toLocaleString('uk-UA');
-        bot.sendMessage(chatId, `Ви успішно зареєстровані! ✅\n\n📅 Найближча трансляція: **${webinar.title}**\n⏰ Час початку: **${startTime}**\n\nВаше персональне посилання для входу:\n🔗 ${PUBLIC_URL}/webinar/${webinar.id}?u=${chatId}`, {
-          parse_mode: 'Markdown'
-        });
+        const now = new Date();
+        const startTime = new Date(webinar.startTime);
+        const isLive = startTime <= now;
+        
+        if (isLive) {
+          bot.sendMessage(chatId, `Ви успішно зареєстровані! ✅\n\n🚀 **Трансляція вже розпочалася!**\n📌 Тема: **${webinar.title}**\n\nШвидше приєднуйтесь за вашим персональним посиланням:\n🔗 ${PUBLIC_URL}/webinar/${webinar.id}?u=${chatId}`, {
+            parse_mode: 'Markdown'
+          });
+        } else {
+          const startTimeStr = startTime.toLocaleString('uk-UA');
+          bot.sendMessage(chatId, `Ви успішно зареєстровані! ✅\n\n📅 Найближча трансляція: **${webinar.title}**\n⏰ Час початку: **${startTimeStr}**\n\nВаше персональне посилання для входу:\n🔗 ${PUBLIC_URL}/webinar/${webinar.id}?u=${chatId}`, {
+            parse_mode: 'Markdown'
+          });
+        }
       } else {
         bot.sendMessage(chatId, `Ви успішно зареєстровані! ✅\n\nНаразі немає запланованих трансляцій, але ми повідомимо вас про наступний ефір!`);
       }

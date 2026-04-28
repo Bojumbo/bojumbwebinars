@@ -22,13 +22,25 @@ export async function POST(req: NextRequest) {
     registeredAt: new Date().toISOString()
   });
 
-  // 2. Find nearest upcoming webinar
+  // 2. Find nearest upcoming or live webinar
   const webinars = db.getWebinars();
   const now = new Date();
   
-  const nearest = webinars
-    .filter(w => new Date(w.startTime) > now)
-    .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())[0];
+  const activeWebinars = webinars.filter(w => {
+    const startTime = new Date(w.startTime);
+    const duration = (w.duration || 3600) * 1000;
+    const endTime = new Date(startTime.getTime() + duration);
+    
+    // Webinar is active if it hasn't finished yet
+    return endTime > now;
+  });
+
+  // Sort: prioritize webinars that are closer to the current time (future or live)
+  const nearest = activeWebinars.sort((a, b) => {
+    const startA = new Date(a.startTime).getTime();
+    const startB = new Date(b.startTime).getTime();
+    return startA - startB;
+  })[0];
 
   if (nearest) {
     db.addNotification({
