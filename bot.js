@@ -86,9 +86,20 @@ setInterval(async () => {
       headers: { 'Authorization': `Bearer ${SECRET_KEY}` }
     });
 
-    const { reminders, followups } = res.data;
+    const { reminders, followups, announcements } = res.data;
 
-    // Нагадування за 30 хв
+    // 1. Анонс нового вебінару (для тих, хто чекав)
+    for (const a of announcements) {
+      const startTime = new Date(a.startTime).toLocaleString('uk-UA');
+      await bot.sendMessage(a.chatId, `🎉 **Гарні новини!**\n\nМи запланували нову трансляцію:\n📌 **${a.title}**\n⏰ Коли: **${startTime}**\n\nВи будете з нами? Приєднуйтесь за посиланням:\n🔗 ${PUBLIC_URL}/webinar/${a.webinarId}?u=${a.chatId}`, {
+        parse_mode: 'Markdown'
+      });
+      await axios.post(`${WEBSITE_URL}/api/bot/notifications/mark`, { id: a.id }, {
+        headers: { 'Authorization': `Bearer ${SECRET_KEY}` }
+      });
+    }
+
+    // 2. Нагадування за 30 хв
     for (const r of reminders) {
       await bot.sendMessage(r.chatId, `⏰ **Нагадування!**\n\nВебінар "${r.title}" почнеться через 30 хвилин.\n\nПриєднуйтесь за посиланням:\n🔗 ${PUBLIC_URL}/webinar/${r.webinarId}?u=${r.chatId}`, {
         parse_mode: 'Markdown'
@@ -98,7 +109,7 @@ setInterval(async () => {
       });
     }
 
-    // Follow-up після завершення
+    // 3. Follow-up після завершення
     for (const f of followups) {
       await bot.sendMessage(f.chatId, `Дякуємо за участь у вебінарі! 🙏\n\nСподіваємось, вам було корисно. Підписуйтесь на наші соцмережі, щоб не пропустити нові ефіри:\n\n📸 **Instagram**: [Ваше посилання]\n📢 **Telegram-канал**: [Ваше посилання]`, {
         parse_mode: 'Markdown'

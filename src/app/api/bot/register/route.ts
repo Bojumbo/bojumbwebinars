@@ -30,6 +30,16 @@ export async function POST(req: NextRequest) {
     .filter(w => new Date(w.startTime) > now)
     .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())[0];
 
+  if (nearest) {
+    db.addNotification({
+      id: `reg_${nearest.id}_${chatId}`,
+      type: 'reminder', // Using reminder type as a proxy for "already has info"
+      userId: chatId.toString(),
+      webinarId: nearest.id,
+      sentAt: new Date().toISOString()
+    });
+  }
+
   return NextResponse.json({ 
     success: true, 
     webinar: nearest || null 

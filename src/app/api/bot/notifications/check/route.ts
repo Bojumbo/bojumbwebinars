@@ -14,6 +14,14 @@ export async function GET(req: NextRequest) {
 
   const reminders = [];
   const followups = [];
+  const announcements = [];
+
+  // Find nearest future webinar for announcements
+  const futureWebinars = webinars
+    .filter(w => new Date(w.startTime) > now)
+    .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
+  
+  const nearest = futureWebinars[0];
 
   for (const w of webinars) {
     const startTime = new Date(w.startTime);
@@ -55,5 +63,22 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  return NextResponse.json({ reminders, followups });
+  // 3. Check for announcements (if a user registered but hasn't heard about the nearest webinar yet)
+  if (nearest) {
+    for (const u of users) {
+      const alreadyNotified = sentNotifs.some(n => n.userId === u.id && n.webinarId === nearest.id);
+      if (!alreadyNotified) {
+        announcements.push({
+          id: `ann_${nearest.id}_${u.id}`,
+          chatId: u.id,
+          webinarId: nearest.id,
+          title: nearest.title,
+          startTime: nearest.startTime,
+          type: 'announcement'
+        });
+      }
+    }
+  }
+
+  return NextResponse.json({ reminders, followups, announcements });
 }
