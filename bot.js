@@ -3,22 +3,23 @@ const axios = require('axios');
 
 // Конфігурація
 const token = process.env.TELEGRAM_TOKEN;
-const API_URL = (process.env.WEBSITE_URL || 'http://localhost:3000') + '/api/bot/generate';
-const WEBSITE_URL = process.env.WEBSITE_URL || 'http://localhost:3000';
+const WEBSITE_URL = process.env.WEBSITE_URL || 'http://web:3000'; // Внутрішня адреса для API
+const PUBLIC_URL = process.env.PUBLIC_URL || 'https://webinars.bojumbohost.pp.ua'; // Зовнішня адреса для глядачів
 const SECRET_KEY = process.env.BOT_SECRET || 'dev-secret';
 
 const bot = new TelegramBot(token, { polling: true });
 const userState = new Map();
 
-console.log('--- Бот для автовебінарів запущений ---');
+console.log('--- Бот для автовебінарів запущений (Прямі посилання) ---');
 
 bot.on('message', async (msg) => {
   const chatId = msg.chat.id;
   const text = msg.text;
+  const username = msg.from.username || 'N/A';
 
   if (text === '/start') {
     bot.sendMessage(chatId, 'Привіт! 😊 Ласкаво просимо до нашої платформи.\n\nБудь ласка, напишіть ваше **Ім’я**:');
-    userState.set(chatId, { step: 'awaiting_name' });
+    userState.set(chatId, { step: 'awaiting_name', username });
     return;
   }
 
@@ -30,17 +31,14 @@ bot.on('message', async (msg) => {
       bot.sendMessage(chatId, 'Будь ласка, введіть коректне ім’я.');
       return;
     }
-    userState.set(chatId, { step: 'awaiting_contact', name: userName });
-    bot.sendMessage(chatId, `Приємно познайомитись, ${userName}! 👋\n\nТепер напишіть ваш **номер телефону**, щоб ми могли надіслати вам код доступу:`);
+    userState.set(chatId, { ...state, step: 'awaiting_contact', name: userName });
+    bot.sendMessage(chatId, `Приємно познайомитись, ${userName}! 👋\n\nТепер напишіть ваш **номер телефону**, щоб ми могли зареєструвати вас на трансляцію:`);
     return;
   }
 
   if (state?.step === 'awaiting_contact') {
     const rawContact = text.trim();
-    // Видаляємо все крім цифр
     const cleanedContact = rawContact.replace(/\D/g, '');
-    
-    // Перевірка: має бути 10 цифр (напр. 0961234567) або 12 цифр (напр. 380961234567)
     const isPhone = /^(38)?0\d{9}$/.test(cleanedContact);
 
     if (!isPhone) {
@@ -48,31 +46,68 @@ bot.on('message', async (msg) => {
       return;
     }
 
-    // Приводимо до єдиного формату +380...
     const contact = cleanedContact.length === 10 ? '+38' + cleanedContact : '+' + cleanedContact;
     const userName = state.name;
 
-    // Генеруємо код (наприклад, WEB-1234)
-    const accessCode = 'WEB-' + Math.floor(1000 + Math.random() * 9000);
-
     try {
-      // Реєструємо код в базі платформи
-      await axios.post(API_URL, { 
-        code: accessCode,
+      // 1. Реєструємо користувача та отримуємо посилання на найближчий вебінар
+      const res = await axios.post(`${WEBSITE_URL}/api/bot/register`, { 
+        chatId: chatId.toString(),
         name: userName,
-        contact: contact
+        phone: contact,
+        username: state.username
       }, {
         headers: { 'Authorization': `Bearer ${SECRET_KEY}` }
       });
 
-      bot.sendMessage(chatId, `Реєстрація успішна! ✅\n\nВаш персональний код доступу:\n✨ **${accessCode}** ✨\n\nВикористовуйте його для входу на платформу за цим посиланням:\n🔗 ${WEBSITE_URL}`, {
-        parse_mode: 'Markdown'
-      });
+      const { webinar, link } = res.data;
+
+      if (webinar) {
+        const startTime = new Date(webinar.startTime).toLocaleString('uk-UA');
+        bot.sendMessage(chatId, `Ви успішно зареєстровані! ✅\n\n📅 Найближча трансляція: **${webinar.title}**\n⏰ Час початку: **${startTime}**\n\nВаше персональне посилання для входу:\n🔗 ${PUBLIC_URL}/webinar/${webinar.id}?u=${chatId}`, {
+          parse_mode: 'Markdown'
+        });
+      } else {
+        bot.sendMessage(chatId, `Ви успішно зареєстровані! ✅\n\nНаразі немає запланованих трансляцій, але ми повідомимо вас про наступний ефір!`);
+      }
 
       userState.delete(chatId);
     } catch (error) {
-      console.error('Помилка API:', error.message);
-      bot.sendMessage(chatId, 'Вибачте, сталася помилка при генерації коду. Спробуйте пізніше.');
+      console.error('Помилка реєстрації:', error.response?.data || error.message);
+      bot.sendMessage(chatId, 'Вибачте, сталася помилка при реєстрації. Спробуйте пізніше.');
     }
   }
 });
+
+// Фоновий цикл для нагадувань (кожні 5 хвилин)
+setInterval(async () => {
+  try {
+    const res = await axios.get(`${WEBSITE_URL}/api/bot/notifications/check`, {
+      headers: { 'Authorization': `Bearer ${SECRET_KEY}` }
+    });
+
+    const { reminders, followups } = res.data;
+
+    // Нагадування за 30 хв
+    for (const r of reminders) {
+      await bot.sendMessage(r.chatId, `⏰ **Нагадування!**\n\nВебінар "${r.title}" почнеться через 30 хвилин.\n\nПриєднуйтесь за посиланням:\n🔗 ${PUBLIC_URL}/webinar/${r.webinarId}?u=${r.chatId}`, {
+        parse_mode: 'Markdown'
+      });
+      await axios.post(`${WEBSITE_URL}/api/bot/notifications/mark`, { id: r.id }, {
+        headers: { 'Authorization': `Bearer ${SECRET_KEY}` }
+      });
+    }
+
+    // Follow-up після завершення
+    for (const f of followups) {
+      await bot.sendMessage(f.chatId, `Дякуємо за участь у вебінарі! 🙏\n\nСподіваємось, вам було корисно. Підписуйтесь на наші соцмережі, щоб не пропустити нові ефіри:\n\n📸 **Instagram**: [Ваше посилання]\n📢 **Telegram-канал**: [Ваше посилання]`, {
+        parse_mode: 'Markdown'
+      });
+      await axios.post(`${WEBSITE_URL}/api/bot/notifications/mark`, { id: f.id }, {
+        headers: { 'Authorization': `Bearer ${SECRET_KEY}` }
+      });
+    }
+  } catch (error) {
+    // console.error('Notification error:', error.message);
+  }
+}, 5 * 60 * 1000);

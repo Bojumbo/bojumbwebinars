@@ -7,10 +7,11 @@ import { Shield, Plus, List, Trash2, ExternalLink, Calendar, Play, Upload, Datab
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
-  const [activeTab, setActiveTab] = useState<'list' | 'create' | 'library' | 'codes'>('list');
+  const [activeTab, setActiveTab] = useState<'list' | 'create' | 'library' | 'stats'>('list');
   const [webinars, setWebinars] = useState([]);
-  const [codes, setCodes] = useState([]);
   const [uploadedFiles, setUploadedFiles] = useState([]);
+  const [selectedWebinarStats, setSelectedWebinarStats] = useState<any>(null);
+  const [attendees, setAttendees] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [formData, setFormData] = useState({
@@ -37,10 +38,17 @@ export default function AdminPage() {
     try {
       const resW = await fetch('/api/admin/webinars');
       if (resW.ok) setWebinars(await resW.json());
-      const resC = await fetch('/api/admin/codes');
-      if (resC.ok) setCodes(await resC.json());
       const resL = await fetch('/api/admin/library');
       if (resL.ok) setUploadedFiles(await resL.json());
+    } catch (e) { console.error(e); }
+  };
+
+  const fetchStats = async (webinarId: string) => {
+    try {
+      const res = await fetch(`/api/admin/stats?webinarId=${webinarId}`);
+      if (res.ok) setAttendees(await res.json());
+      setSelectedWebinarStats(webinarId);
+      setActiveTab('stats');
     } catch (e) { console.error(e); }
   };
 
@@ -146,7 +154,7 @@ export default function AdminPage() {
           <button onClick={() => setActiveTab('list')} className={activeTab === 'list' ? 'btn-primary' : 'glass'} style={{ padding: '0.8rem 1.5rem' }}>Вебінари</button>
           <button onClick={() => setActiveTab('create')} className={activeTab === 'create' ? 'btn-primary' : 'glass'} style={{ padding: '0.8rem 1.5rem' }}>Створити</button>
           <button onClick={() => setActiveTab('library')} className={activeTab === 'library' ? 'btn-primary' : 'glass'} style={{ padding: '0.8rem 1.5rem' }}>Бібліотека</button>
-          <button onClick={() => setActiveTab('codes')} className={activeTab === 'codes' ? 'btn-primary' : 'glass'} style={{ padding: '0.8rem 1.5rem' }}>Слухачі</button>
+          <button onClick={() => setActiveTab('stats')} className={activeTab === 'stats' ? 'btn-primary' : 'glass'} style={{ padding: '0.8rem 1.5rem' }}>Статистика</button>
         </div>
 
         <div className="glass" style={{ padding: '2rem', background: '#fff' }}>
@@ -158,6 +166,7 @@ export default function AdminPage() {
                   <p style={{ fontSize: '0.85rem', color: '#64748b' }}><Calendar size={14} /> {new Date(w.startTime).toLocaleString()}</p>
                   <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem' }}>
                     <Link href={`/webinar/${w.id}`} target="_blank" className="btn-primary" style={{ flex: 1, fontSize: '0.8rem' }}>Перегляд</Link>
+                    <button onClick={() => fetchStats(w.id)} className="glass" style={{ flex: 1, fontSize: '0.8rem' }}>Статистика</button>
                     <button onClick={() => handleDeleteWebinar(w.id)} className="glass" style={{ color: '#ef4444', padding: '0.5rem' }}><Trash2 size={18} /></button>
                   </div>
                 </div>
@@ -230,30 +239,45 @@ export default function AdminPage() {
             </div>
           )}
 
-          {activeTab === 'codes' && (
+          {activeTab === 'stats' && (
             <div>
-              <h3 style={{ marginBottom: '1.5rem' }}>Зареєстровані слухачі</h3>
-              <table style={{ width: '100%', textAlign: 'left' }}>
-                <thead>
-                  <tr style={{ color: '#64748b', fontSize: '0.85rem' }}>
-                    <th style={{ padding: '0.5rem' }}>Промокод</th>
-                    <th style={{ padding: '0.5rem' }}>Ім'я</th>
-                    <th style={{ padding: '0.5rem' }}>Контакт</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {codes.map((c: any, i: number) => (
-                    <tr key={i} style={{ borderTop: '1px solid #f1f5f9' }}>
-                      <td style={{ padding: '1rem', fontWeight: 700, color: '#4f46e5' }}>{c.code}</td>
-                      <td style={{ padding: '1rem' }}>{c.usedBy || '—'}</td>
-                      <td style={{ padding: '1rem' }}>{c.contact || '—'}</td>
+              <h3 style={{ marginBottom: '1.5rem' }}>
+                {selectedWebinarStats 
+                  ? `Глядачі: ${webinars.find((w: any) => w.id === selectedWebinarStats)?.title}` 
+                  : 'Виберіть вебінар у списку для перегляду статистики'}
+              </h3>
+              {selectedWebinarStats && (
+                <table style={{ width: '100%', textAlign: 'left' }}>
+                  <thead>
+                    <tr style={{ color: '#64748b', fontSize: '0.85rem' }}>
+                      <th style={{ padding: '0.5rem' }}>Ім'я</th>
+                      <th style={{ padding: '0.5rem' }}>Телефон</th>
+                      <th style={{ padding: '0.5rem' }}>Telegram</th>
+                      <th style={{ padding: '0.5rem' }}>Дата перегляду</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {attendees.map((a: any, i: number) => (
+                      <tr key={i} style={{ borderTop: '1px solid #f1f5f9' }}>
+                        <td style={{ padding: '1rem', fontWeight: 600 }}>{a.user?.name || '—'}</td>
+                        <td style={{ padding: '1rem' }}>{a.user?.phone || '—'}</td>
+                        <td style={{ padding: '1rem' }}>{a.user?.username ? `@${a.user.username}` : (a.userId || '—')}</td>
+                        <td style={{ padding: '1rem' }}>{new Date(a.joinTime).toLocaleString()}</td>
+                      </tr>
+                    ))}
+                    {attendees.length === 0 && (
+                      <tr><td colSpan={4} style={{ padding: '2rem', textAlign: 'center', color: '#64748b' }}>Реальних глядачів поки немає</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              )}
             </div>
           )}
         </div>
+      </div>
+    </main>
+  );
+}        </div>
       </div>
     </main>
   );

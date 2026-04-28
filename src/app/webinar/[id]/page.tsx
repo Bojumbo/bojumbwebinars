@@ -43,6 +43,28 @@ export default function WebinarPage({ params }: { params: Promise<{ id: string }
             ...current,
             startTime: new Date(current.startTime)
           });
+
+          // Track attendance if 'u' (telegram ID) is present
+          const urlParams = new URLSearchParams(window.location.search);
+          const userId = urlParams.get('u');
+          if (userId) {
+            // Register attendance
+            fetch('/api/analytics/join', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ webinarId: id, userId })
+            }).catch(console.error);
+
+            // Fetch user name to set in local storage
+            const usersRes = await fetch('/api/admin/users');
+            if (usersRes.ok) {
+              const users = await usersRes.json();
+              const user = users.find((u: any) => u.id === userId);
+              if (user) {
+                localStorage.setItem('viewer_name', user.name);
+              }
+            }
+          }
         }
       } catch (e) { console.error(e); }
     };

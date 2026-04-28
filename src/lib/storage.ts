@@ -19,6 +19,29 @@ export interface InvitationCode {
   code: string;
   isUsed: boolean;
   usedBy?: string;
+  contact?: string;
+}
+
+export interface User {
+  id: string; // telegramId
+  name: string;
+  phone: string;
+  username?: string;
+  registeredAt: string;
+}
+
+export interface Attendance {
+  webinarId: string;
+  userId: string;
+  joinTime: string;
+}
+
+export interface NotificationRecord {
+  id: string;
+  type: 'reminder' | 'followup';
+  userId: string;
+  webinarId: string;
+  sentAt: string;
 }
 
 export interface ChatMessage {
@@ -40,13 +63,19 @@ interface DB {
   codes: InvitationCode[];
   chatPresets: ChatMessage[];
   library: VideoFile[];
+  users: User[];
+  attendance: Attendance[];
+  notifications: NotificationRecord[];
 }
 
 const initialDB: DB = {
   webinars: [],
   codes: [{ code: 'ADMIN123', isUsed: false }],
   chatPresets: [],
-  library: []
+  library: [],
+  users: [],
+  attendance: [],
+  notifications: []
 };
 
 function readDB(): DB {
@@ -70,6 +99,9 @@ function readDB(): DB {
     if (!parsed.library) parsed.library = [];
     if (!parsed.codes) parsed.codes = [];
     if (!parsed.webinars) parsed.webinars = [];
+    if (!parsed.users) parsed.users = [];
+    if (!parsed.attendance) parsed.attendance = [];
+    if (!parsed.notifications) parsed.notifications = [];
     return parsed;
   } catch (error) {
     console.error('Error reading database:', error);
@@ -103,12 +135,51 @@ export const db = {
   getCodes: () => readDB().codes,
   addCode: (code: string, name?: string, contact?: string) => {
     const data = readDB();
-    data.codes.push({ code, isUsed: false, usedBy: name, contact: contact } as any);
+    data.codes.push({ code, isUsed: false, usedBy: name, contact: contact });
     writeDB(data);
   },
   validateCode: (code: string) => {
     return readDB().codes.some(c => c.code === code);
   },
+  
+  // New Methods
+  getUsers: () => readDB().users,
+  addUser: (user: User) => {
+    const data = readDB();
+    const existing = data.users.findIndex(u => u.id === user.id);
+    if (existing >= 0) {
+      data.users[existing] = { ...data.users[existing], ...user };
+    } else {
+      data.users.push(user);
+    }
+    writeDB(data);
+  },
+  getUser: (id: string) => readDB().users.find(u => u.id === id),
+  
+  recordAttendance: (att: Attendance) => {
+    const data = readDB();
+    const exists = data.attendance.some(a => a.userId === att.userId && a.webinarId === att.webinarId);
+    if (!exists) {
+      data.attendance.push(att);
+      writeDB(data);
+    }
+  },
+  getAttendance: (webinarId: string) => {
+    const data = readDB();
+    const attendees = data.attendance.filter(a => a.webinarId === webinarId);
+    return attendees.map(a => {
+      const user = data.users.find(u => u.id === a.userId);
+      return { ...a, user };
+    });
+  },
+
+  getNotifications: () => readDB().notifications,
+  addNotification: (notif: NotificationRecord) => {
+    const data = readDB();
+    data.notifications.push(notif);
+    writeDB(data);
+  },
+
   getChatPresets: (webinarId: string) => {
     return readDB().chatPresets.filter(m => m.webinarId === webinarId);
   },
