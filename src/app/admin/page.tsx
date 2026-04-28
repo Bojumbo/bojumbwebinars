@@ -277,8 +277,4 @@ export default function AdminPage() {
       </div>
     </main>
   );
-}        </div>
-      </div>
-    </main>
-  );
 }
