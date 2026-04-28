@@ -25,8 +25,8 @@ export async function GET() {
     });
 
     // Map attendance
-    const attendanceHistory = allAttendance
-      .filter(w => w.attendees.some(a => a.userId === u.id))
+    const attendanceHistory = (allAttendance || [])
+      .filter(w => w.attendees && w.attendees.some(a => a.userId === u.id))
       .map(w => ({
         webinarId: w.webinarId,
         title: w.webinarTitle,
@@ -35,7 +35,7 @@ export async function GET() {
       }));
 
     // Map comments
-    const comments = db.getMessagesByUser(u.id).map(c => {
+    const comments = (db.getMessagesByUser(u.id) || []).map(c => {
       const w = webinars.find(wb => wb.id === c.webinarId);
       return {
         webinarTitle: w?.title || 'Unknown',
@@ -54,5 +54,5 @@ export async function GET() {
     };
   });
 
-  return NextResponse.json(stats);
+  return NextResponse.json(stats || []);
 }

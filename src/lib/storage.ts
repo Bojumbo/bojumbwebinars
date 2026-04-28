@@ -108,6 +108,7 @@ function readDB(): DB {
     if (!parsed.users) parsed.users = [];
     if (!parsed.attendance) parsed.attendance = [];
     if (!parsed.notifications) parsed.notifications = [];
+    if (!parsed.messages) parsed.messages = [];
     return parsed;
   } catch (error) {
     console.error('Error reading database:', error);
