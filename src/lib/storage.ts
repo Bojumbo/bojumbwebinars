@@ -95,6 +95,11 @@ export const db = {
     data.webinars.push(w);
     writeDB(data);
   },
+  deleteWebinar: (id: string) => {
+    const data = readDB();
+    data.webinars = data.webinars.filter(w => w.id !== id);
+    writeDB(data);
+  },
   getCodes: () => readDB().codes,
   addCode: (code: string, name?: string, contact?: string) => {
     const data = readDB();

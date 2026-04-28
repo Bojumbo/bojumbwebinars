@@ -33,16 +33,11 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ error: 'ID is required' }, { status: 400 });
   }
 
-  const data = db.getWebinars();
-  const filtered = data.filter((w: any) => w.id !== id);
-  
-  // Update DB
-  const path = require('path');
-  const fs = require('fs');
-  const DB_PATH = path.join(process.cwd(), 'data.json');
-  const fullDB = JSON.parse(fs.readFileSync(DB_PATH, 'utf-8'));
-  fullDB.webinars = filtered;
-  fs.writeFileSync(DB_PATH, JSON.stringify(fullDB, null, 2));
-
-  return NextResponse.json({ success: true });
+  try {
+    db.deleteWebinar(id);
+    return NextResponse.json({ success: true });
+  } catch (error: any) {
+    console.error('Delete error:', error.message);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  }
 }
