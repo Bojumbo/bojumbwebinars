@@ -12,7 +12,13 @@ export async function POST(req: NextRequest) {
 
   // Parsing the generated ID: rem_WID_UID or foll_WID_UID
   const parts = id.split('_');
-  const type = parts[0] === 'rem' ? 'reminder' : 'followup';
+  const prefix = parts[0];
+  let type: 'reminder' | 'followup' | 'announcement' = 'reminder';
+  
+  if (prefix === 'foll') type = 'followup';
+  if (prefix === 'ann') type = 'announcement';
+  if (prefix === 'reg') type = 'reminder';
+
   const webinarId = parts[1];
   const userId = parts[2];
 

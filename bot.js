@@ -89,8 +89,8 @@ bot.on('message', async (msg) => {
   }
 });
 
-// Фоновий цикл для нагадувань (кожні 5 хвилин)
-setInterval(async () => {
+// Функція для перевірки та надсилання сповіщень
+const checkAndSendNotifications = async () => {
   try {
     const res = await axios.get(`${WEBSITE_URL}/api/bot/notifications/check`, {
       headers: { 'Authorization': `Bearer ${SECRET_KEY}` }
@@ -129,6 +129,12 @@ setInterval(async () => {
       });
     }
   } catch (error) {
-    // console.error('Notification error:', error.message);
+    console.error('Notification error:', error.response?.data || error.message);
   }
-}, 5 * 60 * 1000);
+};
+
+// Запускаємо перевірку одразу при старті
+checkAndSendNotifications();
+
+// Потім кожні 10 секунд (для тесту, потім можна повернути 5 хв)
+setInterval(checkAndSendNotifications, 10 * 1000);
