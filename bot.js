@@ -60,6 +60,8 @@ bot.on('message', async (msg) => {
         headers: { 'Authorization': `Bearer ${SECRET_KEY}` }
       });
 
+      const { webinar } = res.data;
+
       if (webinar) {
         const now = new Date();
         const startTime = new Date(webinar.startTime);
@@ -76,7 +78,7 @@ bot.on('message', async (msg) => {
           });
         }
       } else {
-        bot.sendMessage(chatId, `Ви успішно зареєстровані! ✅\n\nНаразі немає запланованих трансляцій, але ми повідомимо вас про наступний ефір!`);
+        bot.sendMessage(chatId, `Ви успішно зареєстровані! ✅\n\nНаразі запланованих вебінарів ще немає, але ми сповістимо вас як тільки буде заплановано новий вебінар! 🔔`);
       }
 
       userState.delete(chatId);
