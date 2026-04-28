@@ -148,17 +148,26 @@ export default function WebinarPage({ params }: { params: Promise<{ id: string }
   };
 
   const toggleFullScreen = () => {
-    if (!containerRef.current) return;
-    
-    // Спроба використати стандартний Fullscreen API
-    if (!document.fullscreenElement) {
-      if (containerRef.current.requestFullscreen) {
-        containerRef.current.requestFullscreen().catch(() => {});
-      } else if ((containerRef.current as any).webkitRequestFullscreen) {
-        (containerRef.current as any).webkitRequestFullscreen();
-      } else if (videoRef.current && (videoRef.current as any).webkitEnterFullscreen) {
-        // Спеціально для iPhone Safari
-        (videoRef.current as any).webkitEnterFullscreen();
+    const container = containerRef.current;
+    const video = videoRef.current;
+    if (!container) return;
+
+    // Спеціальна логіка для iOS (iPhone/iPad), де працює тільки перегляд відео на весь екран
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+    if (isIOS && video && (video as any).webkitEnterFullscreen) {
+      (video as any).webkitEnterFullscreen();
+      return;
+    }
+
+    // Стандартна логіка для інших пристроїв
+    const isFullscreen = !!(document.fullscreenElement || (document as any).webkitFullscreenElement);
+
+    if (!isFullscreen) {
+      if (container.requestFullscreen) {
+        container.requestFullscreen().catch(() => {});
+      } else if ((container as any).webkitRequestFullscreen) {
+        (container as any).webkitRequestFullscreen();
       }
     } else {
       if (document.exitFullscreen) {
