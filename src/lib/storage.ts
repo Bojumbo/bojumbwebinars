@@ -29,6 +29,7 @@ export interface User {
   username?: string;
   registeredAt: string;
   initialWebinarId?: string;
+  registrations?: { webinarId: string; date: string }[];
 }
 
 export interface Attendance {
@@ -48,10 +49,12 @@ export interface NotificationRecord {
 export interface ChatMessage {
   id: string;
   webinarId: string;
+  userId?: string; // Optional for fake messages
   senderName: string;
   text: string;
   timestamp: number; // offset in seconds from webinar start
   isFake: boolean;
+  sentAt?: string;
 }
 
 interface VideoFile {
@@ -67,6 +70,7 @@ interface DB {
   users: User[];
   attendance: Attendance[];
   notifications: NotificationRecord[];
+  messages: ChatMessage[];
 }
 
 const initialDB: DB = {
@@ -76,7 +80,8 @@ const initialDB: DB = {
   library: [],
   users: [],
   attendance: [],
-  notifications: []
+  notifications: [],
+  messages: []
 };
 
 function readDB(): DB {
@@ -179,6 +184,16 @@ export const db = {
     const data = readDB();
     data.notifications.push(notif);
     writeDB(data);
+  },
+
+  addMessage: (msg: ChatMessage) => {
+    const data = readDB();
+    if (!data.messages) data.messages = [];
+    data.messages.push(msg);
+    writeDB(data);
+  },
+  getMessagesByUser: (userId: string) => {
+    return (readDB().messages || []).filter(m => m.userId === userId);
   },
 
   getChatPresets: (webinarId: string) => {

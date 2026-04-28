@@ -27,6 +27,14 @@ export async function GET(req: NextRequest) {
     })
     .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())[0];
 
+  if (user && nearest) {
+    const registrations = user.registrations || [];
+    if (!registrations.some(r => r.webinarId === nearest.id)) {
+      registrations.push({ webinarId: nearest.id, date: new Date().toISOString() });
+      db.addUser({ ...user, registrations });
+    }
+  }
+
   return NextResponse.json({ 
     exists: !!user, 
     user: user || null,

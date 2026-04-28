@@ -4,23 +4,53 @@ import { db } from '@/lib/storage';
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
-  const users = db.getUsers();
-  const allAttendance = db.getWebinars().map(w => ({
+  const webinars = db.getWebinars();
+  const allAttendance = webinars.map(w => ({
     webinarId: w.id,
     webinarTitle: w.title,
+    webinarTime: w.startTime,
     attendees: db.getAttendance(w.id)
   }));
 
   const stats = users.map(u => {
-    // Find if they attended their initial webinar or any other
-    const attendedWebinars = allAttendance
+    // Map registrations to actual webinar data
+    const registrationHistory = (u.registrations || []).map(r => {
+      const w = webinars.find(wb => wb.id === r.webinarId);
+      return {
+        webinarId: r.webinarId,
+        title: w?.title || 'Unknown',
+        time: w?.startTime || r.date,
+        registeredAt: r.date
+      };
+    });
+
+    // Map attendance
+    const attendanceHistory = allAttendance
       .filter(w => w.attendees.some(a => a.userId === u.id))
-      .map(w => w.webinarTitle);
+      .map(w => ({
+        webinarId: w.webinarId,
+        title: w.webinarTitle,
+        time: w.webinarTime,
+        joinedAt: w.attendees.find(a => a.userId === u.id)?.joinTime
+      }));
+
+    // Map comments
+    const comments = db.getMessagesByUser(u.id).map(c => {
+      const w = webinars.find(wb => wb.id === c.webinarId);
+      return {
+        webinarTitle: w?.title || 'Unknown',
+        text: c.text,
+        videoTime: c.timestamp,
+        sentAt: c.sentAt
+      };
+    });
 
     return {
       ...u,
-      attendedCount: attendedWebinars.length,
-      attendedWebinars
+      registrationHistory,
+      attendanceHistory,
+      comments,
+      attendedCount: attendanceHistory.length
     };
   });
 

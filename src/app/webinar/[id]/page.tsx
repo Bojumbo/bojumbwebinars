@@ -173,14 +173,35 @@ export default function WebinarPage({ params }: { params: Promise<{ id: string }
   const sendMessage = (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputText.trim()) return;
+    
+    const video = videoRef.current;
+    const videoTime = video ? Math.floor(video.currentTime) : 0;
+    const userName = localStorage.getItem('viewer_name') || 'Гість';
+
     const newMsg = {
       id: Date.now().toString(),
-      sender: localStorage.getItem('viewer_name') || 'Гість',
+      sender: userName,
       text: inputText,
       time: Date.now()
     };
     setMessages(prev => [...prev, newMsg]);
     setInputText('');
+
+    // Save to DB
+    const userId = new URLSearchParams(window.location.search).get('u');
+    if (userId) {
+      fetch('/api/webinar/comment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId,
+          webinarId: params.id,
+          senderName: userName,
+          text: inputText,
+          timestamp: videoTime
+        })
+      }).catch(err => console.error('Error saving comment:', err));
+    }
   };
 
   const toggleFullScreen = () => {

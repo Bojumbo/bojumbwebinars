@@ -13,6 +13,7 @@ export default function AdminPage() {
   const [selectedWebinarStats, setSelectedWebinarStats] = useState<any>(null);
   const [attendees, setAttendees] = useState([]);
   const [globalUsers, setGlobalUsers] = useState([]);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [formData, setFormData] = useState({
@@ -296,14 +297,19 @@ export default function AdminPage() {
                 <tbody>
                   {globalUsers.map((u: any, i: number) => (
                     <tr key={i} style={{ borderTop: '1px solid #f1f5f9' }}>
-                      <td style={{ padding: '1rem', fontWeight: 600 }}>{u.name}</td>
+                      <td 
+                        style={{ padding: '1rem', fontWeight: 600, color: '#4f46e5', cursor: 'pointer', textDecoration: 'underline' }}
+                        onClick={() => setSelectedUser(u)}
+                      >
+                        {u.name}
+                      </td>
                       <td style={{ padding: '1rem' }}>{u.phone}</td>
                       <td style={{ padding: '1rem' }}>{u.username !== 'N/A' ? `@${u.username}` : u.id}</td>
                       <td style={{ padding: '1rem', fontSize: '0.8rem' }}>{new Date(u.registeredAt).toLocaleDateString()}</td>
                       <td style={{ padding: '1rem' }}>
                         {u.attendedCount > 0 ? (
                           <span style={{ color: '#10b981', background: 'rgba(16, 185, 129, 0.1)', padding: '0.2rem 0.5rem', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 700 }}>
-                            ✅ ПРИЙШОВ ({u.attendedWebinars.join(', ')})
+                            ✅ ПРИЙШОВ ({u.attendedCount})
                           </span>
                         ) : (
                           <span style={{ color: '#ef4444', background: 'rgba(239, 68, 68, 0.1)', padding: '0.2rem 0.5rem', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 700 }}>
@@ -319,6 +325,89 @@ export default function AdminPage() {
           )}
         </div>
       </div>
+
+      {/* User Info Modal */}
+      {selectedUser && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.5)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }} onClick={() => setSelectedUser(null)}>
+          <div className="glass" style={{ background: '#fff', maxWidth: '800px', width: '100%', maxHeight: '90vh', overflowY: 'auto', padding: '2rem' }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+              <h2>Профіль користувача</h2>
+              <button onClick={() => setSelectedUser(null)} className="glass" style={{ padding: '0.5rem 1rem' }}>Закрити</button>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '2rem', marginBottom: '2.5rem' }}>
+              <div>
+                <p style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 600 }}>ІМ'Я</p>
+                <p style={{ fontSize: '1.1rem', fontWeight: 700 }}>{selectedUser.name}</p>
+              </div>
+              <div>
+                <p style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 600 }}>ТЕЛЕФОН</p>
+                <p style={{ fontSize: '1.1rem', fontWeight: 700 }}>{selectedUser.phone}</p>
+              </div>
+              <div>
+                <p style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 600 }}>TELEGRAM</p>
+                <p style={{ fontSize: '1.1rem', fontWeight: 700 }}>{selectedUser.username !== 'N/A' ? `@${selectedUser.username}` : selectedUser.id}</p>
+              </div>
+              <div>
+                <p style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 600 }}>ПЕРША РЕЄСТРАЦІЯ</p>
+                <p style={{ fontSize: '1.1rem', fontWeight: 700 }}>{new Date(selectedUser.registeredAt).toLocaleString()}</p>
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+              <div>
+                <h4 style={{ marginBottom: '1rem', color: '#4f46e5' }}>📋 Історія записів ({selectedUser.registrationHistory?.length || 0})</h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  {selectedUser.registrationHistory?.map((r: any, idx: number) => (
+                    <div key={idx} className="glass" style={{ padding: '0.8rem', fontSize: '0.85rem' }}>
+                      <p style={{ fontWeight: 700 }}>{r.title}</p>
+                      <p style={{ color: '#64748b' }}>📅 {new Date(r.time).toLocaleString()}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <h4 style={{ marginBottom: '1rem', color: '#10b981' }}>🎓 Історія відвідувань ({selectedUser.attendanceHistory?.length || 0})</h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  {selectedUser.attendanceHistory?.map((a: any, idx: number) => (
+                    <div key={idx} className="glass" style={{ padding: '0.8rem', fontSize: '0.85rem', borderColor: '#10b981' }}>
+                      <p style={{ fontWeight: 700 }}>{a.title}</p>
+                      <p style={{ color: '#10b981' }}>✅ Зайшов: {new Date(a.joinedAt).toLocaleString()}</p>
+                    </div>
+                  ))}
+                  {(!selectedUser.attendanceHistory || selectedUser.attendanceHistory.length === 0) && (
+                    <p style={{ color: '#ef4444', fontSize: '0.85rem' }}>Жодного вебінару ще не відвідано</p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div style={{ marginTop: '2.5rem' }}>
+              <h4 style={{ marginBottom: '1rem', color: '#f59e0b' }}>💬 Повідомлення в чаті ({selectedUser.comments?.length || 0})</h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                {selectedUser.comments?.map((c: any, idx: number) => {
+                  const mins = Math.floor(c.videoTime / 60);
+                  const secs = c.videoTime % 60;
+                  const timeStr = `${mins}:${secs.toString().padStart(2, '0')}`;
+                  return (
+                    <div key={idx} className="glass" style={{ padding: '1rem', background: '#fffbeb', borderLeft: '4px solid #f59e0b' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
+                        <span style={{ fontWeight: 700, fontSize: '0.8rem', color: '#b45309' }}>{c.webinarTitle}</span>
+                        <span style={{ fontWeight: 800, fontSize: '0.8rem', background: '#f59e0b', color: '#fff', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>{timeStr}</span>
+                      </div>
+                      <p style={{ fontSize: '0.9rem', color: '#1e293b' }}>{c.text}</p>
+                      <p style={{ fontSize: '0.7rem', color: '#94a3b8', marginTop: '0.4rem' }}>{new Date(c.sentAt).toLocaleString()}</p>
+                    </div>
+                  );
+                })}
+                {(!selectedUser.comments || selectedUser.comments.length === 0) && (
+                  <p style={{ color: '#64748b', fontSize: '0.85rem', textAlign: 'center', padding: '2rem' }}>Користувач ще не писав у чат</p>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

@@ -32,13 +32,19 @@ export async function POST(req: NextRequest) {
 
   // 2. Register/Update user
   const existingUser = db.getUser(chatId);
+  const registrations = existingUser?.registrations || [];
+  if (nearest && !registrations.some(r => r.webinarId === nearest.id)) {
+    registrations.push({ webinarId: nearest.id, date: new Date().toISOString() });
+  }
+
   db.addUser({
     id: chatId,
     name,
     phone,
     username,
     registeredAt: existingUser ? existingUser.registeredAt : new Date().toISOString(),
-    initialWebinarId: existingUser ? existingUser.initialWebinarId : (nearest ? nearest.id : undefined)
+    initialWebinarId: existingUser ? existingUser.initialWebinarId : (nearest ? nearest.id : undefined),
+    registrations
   });
 
   if (nearest) {
