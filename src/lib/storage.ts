@@ -28,6 +28,7 @@ export interface User {
   phone: string;
   username?: string;
   registeredAt: string;
+  initialWebinarId?: string;
 }
 
 export interface Attendance {

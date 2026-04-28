@@ -13,16 +13,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Missing data' }, { status: 400 });
   }
 
-  // 1. Register user
-  db.addUser({
-    id: chatId,
-    name,
-    phone,
-    username,
-    registeredAt: new Date().toISOString()
-  });
-
-  // 2. Find nearest upcoming or live webinar
+  // 1. Find nearest upcoming or live webinar
   const webinars = db.getWebinars();
   const now = new Date();
   
@@ -30,17 +21,25 @@ export async function POST(req: NextRequest) {
     const startTime = new Date(w.startTime);
     const duration = (w.duration || 3600) * 1000;
     const endTime = new Date(startTime.getTime() + duration);
-    
-    // Webinar is active if it hasn't finished yet
     return endTime > now;
   });
 
-  // Sort: prioritize webinars that are closer to the current time (future or live)
   const nearest = activeWebinars.sort((a, b) => {
     const startA = new Date(a.startTime).getTime();
     const startB = new Date(b.startTime).getTime();
     return startA - startB;
   })[0];
+
+  // 2. Register/Update user
+  const existingUser = db.getUser(chatId);
+  db.addUser({
+    id: chatId,
+    name,
+    phone,
+    username,
+    registeredAt: existingUser ? existingUser.registeredAt : new Date().toISOString(),
+    initialWebinarId: existingUser ? existingUser.initialWebinarId : (nearest ? nearest.id : undefined)
+  });
 
   if (nearest) {
     db.addNotification({

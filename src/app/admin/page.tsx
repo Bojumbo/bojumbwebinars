@@ -7,11 +7,12 @@ import { Shield, Plus, List, Trash2, ExternalLink, Calendar, Play, Upload, Datab
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
-  const [activeTab, setActiveTab] = useState<'list' | 'create' | 'library' | 'stats'>('list');
+  const [activeTab, setActiveTab] = useState<'list' | 'create' | 'library' | 'stats' | 'users'>('list');
   const [webinars, setWebinars] = useState([]);
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [selectedWebinarStats, setSelectedWebinarStats] = useState<any>(null);
   const [attendees, setAttendees] = useState([]);
+  const [globalUsers, setGlobalUsers] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [formData, setFormData] = useState({
@@ -40,6 +41,10 @@ export default function AdminPage() {
       if (resW.ok) setWebinars(await resW.json());
       const resL = await fetch('/api/admin/library');
       if (resL.ok) setUploadedFiles(await resL.json());
+      if (activeTab === 'users') {
+        const resU = await fetch('/api/admin/users/stats');
+        if (resU.ok) setGlobalUsers(await resU.json());
+      }
     } catch (e) { console.error(e); }
   };
 
@@ -155,6 +160,7 @@ export default function AdminPage() {
           <button onClick={() => setActiveTab('create')} className={activeTab === 'create' ? 'btn-primary' : 'glass'} style={{ padding: '0.8rem 1.5rem' }}>Створити</button>
           <button onClick={() => setActiveTab('library')} className={activeTab === 'library' ? 'btn-primary' : 'glass'} style={{ padding: '0.8rem 1.5rem' }}>Бібліотека</button>
           <button onClick={() => setActiveTab('stats')} className={activeTab === 'stats' ? 'btn-primary' : 'glass'} style={{ padding: '0.8rem 1.5rem' }}>Статистика</button>
+          <button onClick={() => setActiveTab('users')} className={activeTab === 'users' ? 'btn-primary' : 'glass'} style={{ padding: '0.8rem 1.5rem' }}>Користувачі</button>
         </div>
 
         <div className="glass" style={{ padding: '2rem', background: '#fff' }}>
@@ -271,6 +277,44 @@ export default function AdminPage() {
                   </tbody>
                 </table>
               )}
+            </div>
+          )}
+
+          {activeTab === 'users' && (
+            <div>
+              <h3 style={{ marginBottom: '1.5rem' }}>Глобальна база користувачів</h3>
+              <table style={{ width: '100%', textAlign: 'left' }}>
+                <thead>
+                  <tr style={{ color: '#64748b', fontSize: '0.85rem' }}>
+                    <th style={{ padding: '0.5rem' }}>Ім'я</th>
+                    <th style={{ padding: '0.5rem' }}>Телефон</th>
+                    <th style={{ padding: '0.5rem' }}>Telegram</th>
+                    <th style={{ padding: '0.5rem' }}>Реєстрація</th>
+                    <th style={{ padding: '0.5rem' }}>Статус відвідування</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {globalUsers.map((u: any, i: number) => (
+                    <tr key={i} style={{ borderTop: '1px solid #f1f5f9' }}>
+                      <td style={{ padding: '1rem', fontWeight: 600 }}>{u.name}</td>
+                      <td style={{ padding: '1rem' }}>{u.phone}</td>
+                      <td style={{ padding: '1rem' }}>{u.username !== 'N/A' ? `@${u.username}` : u.id}</td>
+                      <td style={{ padding: '1rem', fontSize: '0.8rem' }}>{new Date(u.registeredAt).toLocaleDateString()}</td>
+                      <td style={{ padding: '1rem' }}>
+                        {u.attendedCount > 0 ? (
+                          <span style={{ color: '#10b981', background: 'rgba(16, 185, 129, 0.1)', padding: '0.2rem 0.5rem', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 700 }}>
+                            ✅ ПРИЙШОВ ({u.attendedWebinars.join(', ')})
+                          </span>
+                        ) : (
+                          <span style={{ color: '#ef4444', background: 'rgba(239, 68, 68, 0.1)', padding: '0.2rem 0.5rem', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 700 }}>
+                            ❌ НЕ ПРИЙШОВ
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </div>

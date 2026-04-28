@@ -18,6 +18,37 @@ bot.on('message', async (msg) => {
   const username = msg.from.username || 'N/A';
 
   if (text === '/start') {
+    try {
+      const res = await axios.get(`${WEBSITE_URL}/api/bot/user-check?chatId=${chatId}`, {
+        headers: { 'Authorization': `Bearer ${SECRET_KEY}` }
+      });
+
+      if (res.data.exists) {
+        const { user, webinar } = res.data;
+        if (webinar) {
+          const now = new Date();
+          const startTime = new Date(webinar.startTime);
+          const isLive = startTime <= now;
+          
+          if (isLive) {
+            bot.sendMessage(chatId, `Вітаємо знову, ${user.name}! 😊\n\n🚀 **Трансляція вже розпочалася!**\n📌 Тема: **${webinar.title}**\n\nПриєднуйтесь:\n🔗 ${PUBLIC_URL}/webinar/${webinar.id}?u=${chatId}`, {
+              parse_mode: 'Markdown'
+            });
+          } else {
+            const startTimeStr = startTime.toLocaleString('uk-UA');
+            bot.sendMessage(chatId, `Вітаємо знову, ${user.name}! 😊\n\n📅 Найближча трансляція: **${webinar.title}**\n⏰ Початок: **${startTimeStr}**\n\nВаше посилання:\n🔗 ${PUBLIC_URL}/webinar/${webinar.id}?u=${chatId}`, {
+              parse_mode: 'Markdown'
+            });
+          }
+        } else {
+          bot.sendMessage(chatId, `Вітаємо знову, ${user.name}! 😊\n\nНаразі запланованих вебінарів немає, але ми обов'язково сповістимо вас про наступний ефір! 🔔`);
+        }
+        return;
+      }
+    } catch (e) {
+      console.error('User check error:', e.message);
+    }
+
     bot.sendMessage(chatId, 'Привіт! 😊 Ласкаво просимо до нашої платформи.\n\nБудь ласка, напишіть ваше **Ім’я**:');
     userState.set(chatId, { step: 'awaiting_name', username });
     return;
