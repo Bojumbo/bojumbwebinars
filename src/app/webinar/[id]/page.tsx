@@ -149,10 +149,23 @@ export default function WebinarPage({ params }: { params: Promise<{ id: string }
 
   const toggleFullScreen = () => {
     if (!containerRef.current) return;
+    
+    // Спроба використати стандартний Fullscreen API
     if (!document.fullscreenElement) {
-      containerRef.current.requestFullscreen().catch(() => {});
+      if (containerRef.current.requestFullscreen) {
+        containerRef.current.requestFullscreen().catch(() => {});
+      } else if ((containerRef.current as any).webkitRequestFullscreen) {
+        (containerRef.current as any).webkitRequestFullscreen();
+      } else if (videoRef.current && (videoRef.current as any).webkitEnterFullscreen) {
+        // Спеціально для iPhone Safari
+        (videoRef.current as any).webkitEnterFullscreen();
+      }
     } else {
-      document.exitFullscreen();
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      } else if ((document as any).webkitExitFullscreen) {
+        (document as any).webkitExitFullscreen();
+      }
     }
   };
 
@@ -179,6 +192,7 @@ export default function WebinarPage({ params }: { params: Promise<{ id: string }
           header { padding: 0.75rem 1rem !important; }
           h1 { font-size: 1rem !important; }
         }
+        .fs-button:hover { background: rgba(0,0,0,0.8) !important; transform: scale(1.1); }
       `}</style>
       
       <header style={{ background: '#fff', padding: '1rem 2rem', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 30 }}>
@@ -208,12 +222,32 @@ export default function WebinarPage({ params }: { params: Promise<{ id: string }
           
           {isLive && (
             <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-              {isLive && hasInteracted && (
+              {/* Кнопка повного екрана */}
+              {hasInteracted && (
                 <button
+                  className="fs-button"
                   onClick={(e) => { e.stopPropagation(); toggleFullScreen(); }}
-                  style={{ position: 'absolute', bottom: '15px', right: '15px', zIndex: 25, background: 'rgba(0,0,0,0.5)', border: 'none', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', cursor: 'pointer' }}
+                  style={{ 
+                    position: 'absolute', 
+                    bottom: '20px', 
+                    right: '20px', 
+                    zIndex: 40, 
+                    background: 'rgba(0,0,0,0.6)', 
+                    border: '1px solid rgba(255,255,255,0.2)', 
+                    borderRadius: '50%', 
+                    width: '44px', 
+                    height: '44px', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    color: '#fff', 
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    backdropFilter: 'blur(4px)'
+                  }}
+                  title="На весь екран"
                 >
-                  <Maximize size={20} />
+                  <Maximize size={22} />
                 </button>
               )}
 
