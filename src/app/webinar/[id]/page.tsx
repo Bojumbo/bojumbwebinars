@@ -51,6 +51,7 @@ export default function WebinarPage({ params }: { params: Promise<{ id: string }
   }, [id]);
 
   const isFinishedRef = useRef(false);
+  const lastSyncRef = useRef(0);
 
   useEffect(() => {
     if (!webinarData || isFinished || !mounted) return;
@@ -87,13 +88,26 @@ export default function WebinarPage({ params }: { params: Promise<{ id: string }
         const fluctuation = Math.floor(Math.random() * 11) - 5;
         setViewerCount(Math.max(0, base + fluctuation));
 
-        if (videoRef.current && !videoRef.current.src.includes('youtube')) {
-          const drift = Math.abs(videoRef.current.currentTime - offset);
-          if (offset < videoRef.current.duration && drift > 5) {
-            videoRef.current.currentTime = offset;
+        // Логіка синхронізації відео (MP4)
+        const video = videoRef.current;
+        if (video && !video.src.includes('youtube')) {
+          const nowMs = Date.now();
+          const drift = Math.abs(video.currentTime - offset);
+
+          // Перевіряємо синхронізацію не частіше ніж раз на 5 секунд
+          // І тільки якщо відео не в процесі перемотки (seeking)
+          if (nowMs - lastSyncRef.current > 5000 && !video.seeking) {
+            // Збільшили допустимий поріг до 15 секунд для смартфонів
+            if (offset < video.duration && drift > 15) {
+              console.log(`Syncing video: drift is ${drift.toFixed(1)}s`);
+              video.currentTime = offset;
+              lastSyncRef.current = nowMs;
+            }
           }
-          if (videoRef.current.paused && !videoRef.current.ended) {
-            videoRef.current.play().catch(() => {});
+          
+          // Автозапуск, якщо відео стало на паузу випадково
+          if (video.paused && !video.ended && hasInteracted && !video.seeking) {
+            video.play().catch(() => {});
           }
         }
 
