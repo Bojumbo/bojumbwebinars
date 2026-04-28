@@ -31,19 +31,32 @@ bot.on('message', async (msg) => {
       return;
     }
     userState.set(chatId, { step: 'awaiting_contact', name: userName });
-    bot.sendMessage(chatId, `Приємно познайомитись, ${userName}! 👋\n\nТепер напишіть ваш **номер телефону** або **інший контакт**, щоб ми могли зв'язатися з вами:`);
+    bot.sendMessage(chatId, `Приємно познайомитись, ${userName}! 👋\n\nТепер напишіть ваш **номер телефону**, щоб ми могли надіслати вам код доступу:`);
     return;
   }
 
   if (state?.step === 'awaiting_contact') {
-    const contact = text.trim();
+    const rawContact = text.trim();
+    // Видаляємо все крім цифр
+    const cleanedContact = rawContact.replace(/\D/g, '');
+    
+    // Перевірка: має бути 10 цифр (напр. 0961234567) або 12 цифр (напр. 380961234567)
+    const isPhone = /^(38)?0\d{9}$/.test(cleanedContact);
+
+    if (!isPhone) {
+      bot.sendMessage(chatId, '❌ Некоректний формат.\n\nБудь ласка, введіть ваш номер телефону у форматі **0XXXXXXXXX** або **+380XXXXXXXXX**:');
+      return;
+    }
+
+    // Приводимо до єдиного формату +380...
+    const contact = cleanedContact.length === 10 ? '+38' + cleanedContact : '+' + cleanedContact;
     const userName = state.name;
 
     // Генеруємо код (наприклад, WEB-1234)
     const accessCode = 'WEB-' + Math.floor(1000 + Math.random() * 9000);
 
     try {
-      // Реєструємо код в базі платформи (передаємо також ім'я та контакт)
+      // Реєструємо код в базі платформи
       await axios.post(API_URL, { 
         code: accessCode,
         name: userName,
