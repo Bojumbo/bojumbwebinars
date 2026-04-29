@@ -162,6 +162,14 @@ export const db = {
     writeDB(data);
   },
   getUser: (id: string) => readDB().users.find(u => u.id === id),
+  deleteUser: (id: string) => {
+    const data = readDB();
+    data.users = data.users.filter(u => u.id !== id);
+    data.attendance = data.attendance.filter(a => a.userId !== id);
+    data.notifications = data.notifications.filter(n => n.userId !== id);
+    data.messages = (data.messages || []).filter(m => m.userId !== id);
+    writeDB(data);
+  },
   
   recordAttendance: (att: Attendance) => {
     const data = readDB();

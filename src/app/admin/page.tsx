@@ -14,6 +14,8 @@ export default function AdminPage() {
   const [attendees, setAttendees] = useState([]);
   const [globalUsers, setGlobalUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [isEditingUser, setIsEditingUser] = useState(false);
+  const [editUserData, setEditUserData] = useState({ name: '', phone: '' });
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [formData, setFormData] = useState({
@@ -47,6 +49,33 @@ export default function AdminPage() {
         if (resU.ok) setGlobalUsers(await resU.json());
       }
     } catch (e) { console.error(e); }
+  };
+
+  const handleUpdateUser = async () => {
+    if (!selectedUser) return;
+    const res = await fetch('/api/admin/users', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: selectedUser.id, ...editUserData })
+    });
+    if (res.ok) {
+      setIsEditingUser(false);
+      setSelectedUser(null);
+      fetchData();
+    }
+  };
+
+  const handleDeleteUser = async (userId: string) => {
+    if (!confirm('Ви впевнені, що хочете видалити цього користувача та всю його історію?')) return;
+    const res = await fetch('/api/admin/users', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId })
+    });
+    if (res.ok) {
+      setSelectedUser(null);
+      fetchData();
+    }
   };
 
   const fetchStats = async (webinarId: string) => {
@@ -332,17 +361,33 @@ export default function AdminPage() {
           <div className="glass" style={{ background: '#fff', maxWidth: '800px', width: '100%', maxHeight: '90vh', overflowY: 'auto', padding: '2rem' }} onClick={e => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
               <h2>Профіль користувача</h2>
-              <button onClick={() => setSelectedUser(null)} className="glass" style={{ padding: '0.5rem 1rem' }}>Закрити</button>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                {!isEditingUser ? (
+                  <button onClick={() => { setEditUserData({ name: selectedUser.name, phone: selectedUser.phone }); setIsEditingUser(true); }} className="glass" style={{ color: '#4f46e5' }}>Редагувати</button>
+                ) : (
+                  <button onClick={handleUpdateUser} className="btn-primary">Зберегти</button>
+                )}
+                <button onClick={() => handleDeleteUser(selectedUser.id)} className="glass" style={{ color: '#ef4444' }}>Видалити</button>
+                <button onClick={() => { setSelectedUser(null); setIsEditingUser(false); }} className="glass" style={{ padding: '0.5rem 1rem' }}>Закрити</button>
+              </div>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '2rem', marginBottom: '2.5rem' }}>
               <div>
                 <p style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 600 }}>ІМ'Я</p>
-                <p style={{ fontSize: '1.1rem', fontWeight: 700 }}>{selectedUser.name}</p>
+                {isEditingUser ? (
+                  <input type="text" className="input-field" value={editUserData.name} onChange={e => setEditUserData({...editUserData, name: e.target.value})} />
+                ) : (
+                  <p style={{ fontSize: '1.1rem', fontWeight: 700 }}>{selectedUser.name}</p>
+                )}
               </div>
               <div>
                 <p style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 600 }}>ТЕЛЕФОН</p>
-                <p style={{ fontSize: '1.1rem', fontWeight: 700 }}>{selectedUser.phone}</p>
+                {isEditingUser ? (
+                  <input type="text" className="input-field" value={editUserData.phone} onChange={e => setEditUserData({...editUserData, phone: e.target.value})} />
+                ) : (
+                  <p style={{ fontSize: '1.1rem', fontWeight: 700 }}>{selectedUser.phone}</p>
+                )}
               </div>
               <div>
                 <p style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 600 }}>TELEGRAM</p>
