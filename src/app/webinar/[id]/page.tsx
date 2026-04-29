@@ -68,17 +68,23 @@ export default function WebinarPage(props: any) {
             }
           }
 
-          // Track attendance if 'u' (telegram ID) is present
+          // Track attendance if 'u' (telegram ID) is present AND webinar is live
           const urlParams = new URLSearchParams(window.location.search);
           const userId = urlParams.get('u');
           if (userId) {
-            fetch('/api/analytics/join', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ webinarId: currentWebinarId, userId })
-            }).catch(console.error);
+            const nowTime = new Date().getTime();
+            const endTime = startTime.getTime() + (current.duration || 3600) * 1000;
+            const isActuallyLive = nowTime >= startTime.getTime() && nowTime <= endTime;
 
-            // Fetch user name
+            if (isActuallyLive) {
+              fetch('/api/analytics/join', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ webinarId: currentWebinarId, userId })
+              }).catch(console.error);
+            }
+
+            // Fetch user name (can happen anytime)
             fetch('/api/admin/users').then(r => r.json()).then(users => {
               const user = users.find((u: any) => u.id === userId);
               if (user) localStorage.setItem('viewer_name', user.name);
