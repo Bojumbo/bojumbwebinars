@@ -195,7 +195,7 @@ export default function WebinarPage({ params }: { params: Promise<{ id: string }
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId,
-          webinarId: params.id,
+          webinarId: id,
           senderName: userName,
           text: inputText,
           timestamp: videoTime
