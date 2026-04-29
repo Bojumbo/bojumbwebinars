@@ -198,17 +198,44 @@ export default function AdminPage() {
         <div className="glass" style={{ padding: '2rem', background: '#fff' }}>
           {activeTab === 'list' && (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '1.5rem' }}>
-              {webinars.map((w: any) => (
-                <div key={w.id} className="glass" style={{ padding: '1.5rem' }}>
-                  <h3 style={{ marginBottom: '0.5rem' }}>{w.title}</h3>
-                  <p style={{ fontSize: '0.85rem', color: '#64748b' }}><Calendar size={14} /> {new Date(w.startTime).toLocaleString()}</p>
-                  <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem' }}>
-                    <Link href={`/webinar/${w.id}`} target="_blank" className="btn-primary" style={{ flex: 1, fontSize: '0.8rem' }}>Перегляд</Link>
-                    <button onClick={() => fetchStats(w.id)} className="glass" style={{ flex: 1, fontSize: '0.8rem' }}>Статистика</button>
-                    <button onClick={() => handleDeleteWebinar(w.id)} className="glass" style={{ color: '#ef4444', padding: '0.5rem' }}><Trash2 size={18} /></button>
+              {webinars.map((w: any) => {
+                const now = new Date().getTime();
+                const start = new Date(w.startTime).getTime();
+                const end = start + (w.duration || 3600) * 1000;
+                
+                let status = { label: 'Заплановано', color: '#4f46e5', bg: '#e0e7ff' };
+                if (now >= start && now <= end) {
+                  status = { label: 'Онлайн', color: '#10b981', bg: '#dcfce7' };
+                } else if (now > end) {
+                  status = { label: 'Завершено', color: '#64748b', bg: '#f1f5f9' };
+                }
+
+                return (
+                  <div key={w.id} className="glass" style={{ padding: '1.5rem', position: 'relative' }}>
+                    <div style={{ 
+                      position: 'absolute', 
+                      top: '1rem', 
+                      right: '1rem', 
+                      fontSize: '0.7rem', 
+                      fontWeight: 800, 
+                      padding: '0.2rem 0.6rem', 
+                      borderRadius: '12px',
+                      background: status.bg,
+                      color: status.color,
+                      textTransform: 'uppercase'
+                    }}>
+                      {status.label}
+                    </div>
+                    <h3 style={{ marginBottom: '0.5rem', paddingRight: '5rem' }}>{w.title}</h3>
+                    <p style={{ fontSize: '0.85rem', color: '#64748b' }}><Calendar size={14} /> {new Date(w.startTime).toLocaleString()}</p>
+                    <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem' }}>
+                      <Link href={`/webinar/${w.id}`} target="_blank" className="btn-primary" style={{ flex: 1, fontSize: '0.8rem' }}>Перегляд</Link>
+                      <button onClick={() => fetchStats(w.id)} className="glass" style={{ flex: 1, fontSize: '0.8rem' }}>Статистика</button>
+                      <button onClick={() => handleDeleteWebinar(w.id)} className="glass" style={{ color: '#ef4444', padding: '0.5rem' }}><Trash2 size={18} /></button>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
 
