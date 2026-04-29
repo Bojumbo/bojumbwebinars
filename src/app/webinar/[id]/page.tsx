@@ -10,9 +10,9 @@ interface Message {
   time: number;
 }
 
-export default function WebinarPage({ params }: { params: Promise<{ id: string }> }) {
-  const resolvedParams = use(params);
-  const id = resolvedParams.id;
+export default function WebinarPage(props: { params: Promise<{ id: string }> }) {
+  const resolvedParams = use(props.params);
+  const webinarId = resolvedParams.id;
   const [mounted, setMounted] = useState(false);
   const [isLive, setIsLive] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
@@ -38,7 +38,7 @@ export default function WebinarPage({ params }: { params: Promise<{ id: string }
       try {
         const res = await fetch('/api/admin/webinars');
         const data = await res.json();
-        const current = data.find((w: any) => w.id === id);
+        const current = data.find((w: any) => w.id === webinarId);
         if (current) {
           setWebinarData({
             ...current,
@@ -53,7 +53,7 @@ export default function WebinarPage({ params }: { params: Promise<{ id: string }
             fetch('/api/analytics/join', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ webinarId: id, userId })
+              body: JSON.stringify({ webinarId: webinarId, userId })
             }).catch(console.error);
 
             // Fetch user name to set in local storage
@@ -71,7 +71,7 @@ export default function WebinarPage({ params }: { params: Promise<{ id: string }
     };
     fetchWebinar();
     return () => window.removeEventListener('resize', checkMobile);
-  }, [id]);
+  }, [webinarId]);
 
   const isFinishedRef = useRef(false);
   const lastSyncRef = useRef(0);
@@ -196,7 +196,7 @@ export default function WebinarPage({ params }: { params: Promise<{ id: string }
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId,
-          webinarId: id,
+          webinarId: webinarId,
           senderName: userName,
           text: inputText,
           timestamp: videoTime
