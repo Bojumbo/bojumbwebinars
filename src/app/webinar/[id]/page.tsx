@@ -40,38 +40,56 @@ export default function WebinarPage(props: any) {
         const data = await res.json();
         const current = data.find((w: any) => w.id === currentWebinarId);
         if (current) {
+          const startTime = new Date(current.startTime);
           setWebinarData({
             ...current,
-            startTime: new Date(current.startTime)
+            startTime
           });
+
+          // Pre-fill past chat presets
+          const now = new Date();
+          const diff = startTime.getTime() - now.getTime();
+          if (diff < 0) {
+            const offset = Math.abs(diff) / 1000;
+            const pastPresets = (current.chatPresets || [])
+              .filter((m: any) => m.timestamp <= offset)
+              .map((m: any) => ({
+                id: m.id,
+                sender: m.senderName,
+                text: m.text,
+                time: startTime.getTime() + m.timestamp * 1000
+              }));
+            if (pastPresets.length > 0) {
+              setMessages(prev => {
+                const ids = new Set(prev.map(p => p.id));
+                const unique = pastPresets.filter(p => !ids.has(p.id));
+                return [...prev, ...unique].sort((a, b) => a.time - b.time);
+              });
+            }
+          }
 
           // Track attendance if 'u' (telegram ID) is present
           const urlParams = new URLSearchParams(window.location.search);
           const userId = urlParams.get('u');
           if (userId) {
-            // Register attendance
             fetch('/api/analytics/join', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ webinarId: currentWebinarId, userId })
             }).catch(console.error);
 
-            // Fetch user name to set in local storage
-            const usersRes = await fetch('/api/admin/users');
-            if (usersRes.ok) {
-              const users = await usersRes.json();
+            // Fetch user name
+            fetch('/api/admin/users').then(r => r.json()).then(users => {
               const user = users.find((u: any) => u.id === userId);
-              if (user) {
-                localStorage.setItem('viewer_name', user.name);
-              }
-            }
+              if (user) localStorage.setItem('viewer_name', user.name);
+            }).catch(console.error);
           }
         }
       } catch (e) { console.error(e); }
     };
     fetchWebinar();
     return () => window.removeEventListener('resize', checkMobile);
-  }, [currentWebinarId]);
+  }, [currentWebinarId, mounted]);
 
   const isFinishedRef = useRef(false);
   const lastSyncRef = useRef(0);
