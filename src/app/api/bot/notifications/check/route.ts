@@ -48,7 +48,11 @@ export async function GET(req: NextRequest) {
 
     // 2. Check for follow-ups (approx 10 mins after end)
     if (diffFromEnd > 0 && diffFromEnd <= 40) {
+      const attendees = db.getAttendance(w.id);
       for (const u of users) {
+        const hasAttended = attendees.some((a: any) => a.userId === u.id);
+        if (!hasAttended) continue; // Skip if they didn't join
+
         const alreadySent = sentNotifs.some(n => n.userId === u.id && n.webinarId === w.id && n.type === 'followup');
         if (!alreadySent) {
           followups.push({
