@@ -4,6 +4,9 @@ import { db } from '@/lib/storage';
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
+  const users = db.getUsers();
+  console.log(`[Admin API] Fetching stats for ${users?.length || 0} users`);
+  
   const webinars = db.getWebinars();
   const allAttendance = webinars.map(w => ({
     webinarId: w.id,
