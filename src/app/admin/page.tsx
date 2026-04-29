@@ -16,6 +16,8 @@ export default function AdminPage() {
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [isEditingUser, setIsEditingUser] = useState(false);
   const [editUserData, setEditUserData] = useState({ name: '', phone: '' });
+  const [filterSearch, setFilterSearch] = useState('');
+  const [filterAttendance, setFilterAttendance] = useState('all'); // all, attended, missed
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [formData, setFormData] = useState({
@@ -311,8 +313,32 @@ export default function AdminPage() {
           )}
 
           {activeTab === 'users' && (
-            <div>
-              <h3 style={{ marginBottom: '1.5rem' }}>Глобальна база користувачів</h3>
+            <div className="glass" style={{ padding: '2rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', gap: '1rem', flexWrap: 'wrap' }}>
+                <h3 style={{ margin: 0 }}>Глобальна база користувачів</h3>
+                
+                <div style={{ display: 'flex', gap: '1rem', flex: 1, minWidth: '300px', justifyContent: 'flex-end' }}>
+                  <input 
+                    type="text" 
+                    placeholder="Пошук (ім'я, тел, TG)..." 
+                    className="input-field"
+                    value={filterSearch}
+                    onChange={(e) => setFilterSearch(e.target.value)}
+                    style={{ maxWidth: '300px' }}
+                  />
+                  <select 
+                    className="input-field" 
+                    value={filterAttendance}
+                    onChange={(e) => setFilterAttendance(e.target.value)}
+                    style={{ maxWidth: '200px' }}
+                  >
+                    <option value="all">Всі користувачі</option>
+                    <option value="attended">✅ Прийшли (хоча б раз)</option>
+                    <option value="missed">❌ Не прийшли (ні разу)</option>
+                  </select>
+                </div>
+              </div>
+
               <table style={{ width: '100%', textAlign: 'left' }}>
                 <thead>
                   <tr style={{ color: '#64748b', fontSize: '0.85rem' }}>
@@ -324,7 +350,23 @@ export default function AdminPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {globalUsers.map((u: any, i: number) => (
+                  {globalUsers
+                    .filter((u: any) => {
+                      const searchLower = filterSearch.toLowerCase();
+                      const matchesSearch = 
+                        u.name.toLowerCase().includes(searchLower) ||
+                        u.phone.includes(filterSearch) ||
+                        u.id.includes(filterSearch);
+                      
+                      const hasAttended = u.attendedCount > 0;
+                      const matchesAttendance = 
+                        filterAttendance === 'all' ||
+                        (filterAttendance === 'attended' && hasAttended) ||
+                        (filterAttendance === 'missed' && !hasAttended);
+                        
+                      return matchesSearch && matchesAttendance;
+                    })
+                    .map((u: any, i: number) => (
                     <tr key={i} style={{ borderTop: '1px solid #f1f5f9' }}>
                       <td 
                         style={{ padding: '1rem', fontWeight: 600, color: '#4f46e5', cursor: 'pointer', textDecoration: 'underline' }}
