@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, use } from 'react';
 import { Users, Send, Clock, Play, Maximize } from 'lucide-react';
 
 interface Message {
@@ -11,7 +11,8 @@ interface Message {
 }
 
 export default function WebinarPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = React.use(params);
+  const resolvedParams = use(params);
+  const id = resolvedParams.id;
   const [mounted, setMounted] = useState(false);
   const [isLive, setIsLive] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
