@@ -23,6 +23,7 @@ export async function GET(req: NextRequest) {
   
   const nearest = futureWebinars[0];
 
+  // 1. Check for reminders and follow-ups in a loop
   for (const w of webinars) {
     const startTime = new Date(w.startTime);
     const endTime = new Date(startTime.getTime() + (w.duration || 3600) * 1000);
@@ -30,8 +31,8 @@ export async function GET(req: NextRequest) {
     const diffToStart = (startTime.getTime() - now.getTime()) / 60000; // minutes
     const diffFromEnd = (now.getTime() - endTime.getTime()) / 60000; // minutes
 
-    // 1. Check for reminders (approx 30 mins before start)
-    if (diffToStart > 0 && diffToStart <= 35) {
+    // 1a. Reminders: Tighten window to 27-33 mins
+    if (diffToStart >= 27 && diffToStart <= 33) {
       for (const u of users) {
         const alreadySent = sentNotifs.some(n => n.userId === u.id && n.webinarId === w.id && n.type === 'reminder');
         if (!alreadySent) {
@@ -46,30 +47,33 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // 2. Check for follow-ups (approx 10 mins after end)
-    if (diffFromEnd > 0 && diffFromEnd <= 40) {
+    // 1b. Follow-ups: 10-40 mins after end
+    if (diffFromEnd >= 10 && diffFromEnd <= 40) {
       const attendees = db.getAttendance(w.id);
       for (const u of users) {
         const hasAttended = attendees.some((a: any) => a.userId === u.id);
-        if (!hasAttended) continue; // Skip if they didn't join
-
-        const alreadySent = sentNotifs.some(n => n.userId === u.id && n.webinarId === w.id && n.type === 'followup');
-        if (!alreadySent) {
-          followups.push({
-            id: `foll_${w.id}_${u.id}`,
-            chatId: u.id,
-            webinarId: w.id,
-            title: w.title,
-            type: 'followup'
-          });
+        if (hasAttended) {
+          const alreadySent = sentNotifs.some(n => n.userId === u.id && n.webinarId === w.id && n.type === 'followup');
+          if (!alreadySent) {
+            followups.push({
+              id: `foll_${w.id}_${u.id}`,
+              chatId: u.id,
+              webinarId: w.id,
+              title: w.title,
+              type: 'followup'
+            });
+          }
         }
       }
     }
   }
 
-  // 3. Check for announcements (if a user registered but hasn't heard about the nearest webinar yet)
+  // 2. Announcements: For the nearest webinar, but ONLY if we haven't sent a reminder for it in THIS cycle
   if (nearest) {
     for (const u of users) {
+      // If we already added a reminder for THIS user for THIS webinar in THIS request, skip announcement
+      if (reminders.some(r => r.chatId === u.id && r.webinarId === nearest.id)) continue;
+
       const alreadyNotified = sentNotifs.some(n => n.userId === u.id && n.webinarId === nearest.id);
       if (!alreadyNotified) {
         announcements.push({
