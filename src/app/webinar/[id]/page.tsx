@@ -171,6 +171,36 @@ export default function WebinarPage(props: any) {
     return () => clearInterval(timer);
   }, [webinarData, isFinished, hasInteracted, mounted]);
 
+  // Polling for real-time messages (every 3 seconds)
+  useEffect(() => {
+    if (!mounted || isFinished) return;
+
+    const pollInterval = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/webinar/comment?webinarId=${currentWebinarId}`);
+        if (res.ok) {
+          const dbMessages = await res.json();
+          setMessages(prev => {
+            const existingIds = new Set(prev.map(m => m.id));
+            const newMessages = dbMessages
+              .filter((m: any) => !existingIds.has(m.id))
+              .map((m: any) => ({
+                id: m.id,
+                sender: m.senderName,
+                text: m.text,
+                time: new Date(m.sentAt).getTime()
+              }));
+            
+            if (newMessages.length === 0) return prev;
+            return [...prev, ...newMessages].sort((a, b) => a.time - b.time);
+          });
+        }
+      } catch (e) { console.error('Polling error:', e); }
+    }, 3000);
+
+    return () => clearInterval(pollInterval);
+  }, [mounted, isFinished, currentWebinarId]);
+
   const sendMessage = (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputText.trim()) return;
@@ -179,8 +209,9 @@ export default function WebinarPage(props: any) {
     const videoTime = video ? Math.floor(video.currentTime) : 0;
     const userName = localStorage.getItem('viewer_name') || 'Гість';
 
+    const msgId = Date.now().toString();
     const newMsg = {
-      id: Date.now().toString(),
+      id: msgId,
       sender: userName,
       text: inputText,
       time: Date.now()
@@ -195,6 +226,7 @@ export default function WebinarPage(props: any) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          id: msgId,
           userId,
           webinarId: currentWebinarId,
           senderName: userName,

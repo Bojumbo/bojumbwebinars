@@ -204,6 +204,9 @@ export const db = {
   getMessagesByUser: (userId: string) => {
     return (readDB().messages || []).filter(m => m.userId === userId);
   },
+  getMessagesByWebinar: (webinarId: string) => {
+    return (readDB().messages || []).filter(m => m.webinarId === webinarId);
+  },
 
   getChatPresets: (webinarId: string) => {
     return readDB().chatPresets.filter(m => m.webinarId === webinarId);
