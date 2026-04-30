@@ -347,7 +347,7 @@ export default function WebinarPage(props: any) {
         <div 
           ref={containerRef}
           className="video-container" 
-          style={{ background: '#000', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          style={{ background: '#000', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', overflow: 'hidden' }}
         >
           {!isLive && !isFinished && (
             <div style={{ textAlign: 'center', color: '#fff', padding: '2rem' }}>
