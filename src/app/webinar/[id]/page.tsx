@@ -39,14 +39,15 @@ export default function WebinarPage(props: any) {
     const startTime = webinarData.startTime.getTime();
     const endTime = startTime + (webinarData.duration || 3600) * 1000;
 
-    if (nowTime >= startTime && nowTime <= endTime) {
+    // Allow 5 min buffer before start
+    if (nowTime >= (startTime - 5 * 60 * 1000) && nowTime <= endTime) {
       try {
-        const res = await fetch('/api/analytics/join', {
+        await fetch('/api/analytics/join', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ webinarId: currentWebinarId, userId })
+          body: JSON.stringify({ webinarId: webinarData.id, userId })
         });
-        if (res.ok) attendanceTrackedRef.current = true;
+        attendanceTrackedRef.current = true;
       } catch (e) { console.error('Attendance tracking error:', e); }
     }
   };
@@ -332,10 +333,21 @@ export default function WebinarPage(props: any) {
         .fs-button:hover { background: rgba(0,0,0,0.8) !important; transform: scale(1.1); }
       `}</style>
       
-      <header style={{ background: '#fff', padding: '1rem 2rem', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 30 }}>
-        <div style={{ overflow: 'hidden' }}>
-          <h1 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#1e293b', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{webinarData.title}</h1>
-          {isLive && <span style={{ color: '#ef4444', fontSize: '0.75rem', fontWeight: 800 }}>● В ЕФІРІ</span>}
+      <header style={{ 
+        background: '#fff', 
+        padding: '0 2rem', 
+        height: '70px',
+        borderBottom: '1px solid #e2e8f0', 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center', 
+        zIndex: 30,
+        boxSizing: 'border-box',
+        flexShrink: 0
+      }}>
+        <div style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+          <h1 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#1e293b', whiteSpace: 'nowrap', textOverflow: 'ellipsis', margin: 0 }}>{webinarData.title}</h1>
+          {isLive && <span style={{ color: '#ef4444', fontSize: '0.7rem', fontWeight: 800, lineHeight: 1 }}>● В ЕФІРІ</span>}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', background: '#f1f5f9', padding: '0.4rem 0.8rem', borderRadius: '10px' }}>
           <Users size={16} style={{ color: '#4f46e5' }} />
