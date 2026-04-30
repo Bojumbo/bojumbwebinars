@@ -5,8 +5,11 @@ import { Inter } from 'next/font/google';
 const inter = Inter({ subsets: ['latin', 'cyrillic'] });
 
 export const metadata: Metadata = {
-  title: 'Bojumbo Webinars',
-  description: 'Професійна платформа для автовебінарів',
+  title: 'autodealer webinar',
+  description: 'Професійна платформа для автодилерів',
+  icons: {
+    icon: '/favicon.png',
+  },
 };
 
 export default function RootLayout({
