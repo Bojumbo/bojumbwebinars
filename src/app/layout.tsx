@@ -5,8 +5,8 @@ import { Inter } from 'next/font/google';
 const inter = Inter({ subsets: ['latin', 'cyrillic'] });
 
 export const metadata: Metadata = {
-  title: 'autodealer webinar',
-  description: 'Професійна платформа для автодилерів',
+  title: 'Autodealer Webinar',
+  description: 'Платформа вебінарів від autodealer',
   icons: {
     icon: '/favicon.png',
   },
