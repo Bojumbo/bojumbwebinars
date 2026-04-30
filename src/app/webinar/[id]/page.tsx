@@ -27,6 +27,29 @@ export default function WebinarPage(props: any) {
   const [isMobile, setIsMobile] = useState(false);
   
   const [webinarData, setWebinarData] = useState<any>(null);
+  const attendanceTrackedRef = useRef(false);
+
+  const trackAttendance = async () => {
+    if (attendanceTrackedRef.current || !webinarData) return;
+    const urlParams = new URLSearchParams(window.location.search);
+    const userId = urlParams.get('u');
+    if (!userId) return;
+
+    const nowTime = new Date().getTime();
+    const startTime = webinarData.startTime.getTime();
+    const endTime = startTime + (webinarData.duration || 3600) * 1000;
+
+    if (nowTime >= startTime && nowTime <= endTime) {
+      try {
+        const res = await fetch('/api/analytics/join', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ webinarId: currentWebinarId, userId })
+        });
+        if (res.ok) attendanceTrackedRef.current = true;
+      } catch (e) { console.error('Attendance tracking error:', e); }
+    }
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -72,18 +95,6 @@ export default function WebinarPage(props: any) {
           const urlParams = new URLSearchParams(window.location.search);
           const userId = urlParams.get('u');
           if (userId) {
-            const nowTime = new Date().getTime();
-            const endTime = startTime.getTime() + (current.duration || 3600) * 1000;
-            const isActuallyLive = nowTime >= startTime.getTime() && nowTime <= endTime;
-
-            if (isActuallyLive) {
-              fetch('/api/analytics/join', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ webinarId: currentWebinarId, userId })
-              }).catch(console.error);
-            }
-
             // Fetch user name (can happen anytime)
             fetch('/api/admin/users').then(r => r.json()).then(users => {
               const user = users.find((u: any) => u.id === userId);
@@ -108,6 +119,9 @@ export default function WebinarPage(props: any) {
         clearInterval(timer);
         return;
       }
+
+      // Continuous attendance check
+      trackAttendance();
       
       const now = new Date();
       const diff = webinarData.startTime.getTime() - now.getTime();
