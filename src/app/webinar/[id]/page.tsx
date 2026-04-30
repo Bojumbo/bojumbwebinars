@@ -318,12 +318,12 @@ export default function WebinarPage(props: any) {
   const ytId = getYouTubeId(webinarData.videoUrl);
 
   return (
-    <main style={{ minHeight: '100vh', background: '#f8fafc', display: 'flex', flexDirection: 'column' }}>
+    <main style={{ height: '100vh', background: '#f8fafc', display: 'flex', flexDirection: 'column', overflow: isMobile ? 'auto' : 'hidden' }}>
       <style>{`
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-        .webinar-grid { display: grid; grid-template-columns: 1fr 350px; flex: 1; overflow: hidden; }
+        .webinar-grid { display: grid; grid-template-columns: 1fr 350px; flex: 1; min-height: 0; }
         @media (max-width: 768px) {
-          .webinar-grid { grid-template-columns: 1fr; display: flex; flex-direction: column; overflow-y: auto; }
+          .webinar-grid { grid-template-columns: 1fr; display: flex; flex-direction: column; }
           .video-container { height: 250px !important; flex: none !important; }
           .chat-aside { height: 400px !important; flex: none !important; }
           header { padding: 0.75rem 1rem !important; }
