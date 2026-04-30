@@ -322,36 +322,66 @@ export default function WebinarPage(props: any) {
     <main style={{ height: '100vh', background: '#f8fafc', display: 'flex', flexDirection: 'column', overflow: isMobile ? 'auto' : 'hidden' }}>
       <style>{`
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-        .webinar-grid { display: grid; grid-template-columns: 1fr 350px; flex: 1; min-height: 0; }
-        @media (max-width: 768px) {
-          .webinar-grid { grid-template-columns: 1fr; display: flex; flex-direction: column; }
-          .video-container { height: 250px !important; flex: none !important; }
-          .chat-aside { height: 400px !important; flex: none !important; }
-          header { padding: 0.75rem 1rem !important; }
-          h1 { font-size: 1rem !important; }
+        .webinar-grid { 
+          display: grid; 
+          grid-template-columns: 1fr 380px; 
+          gap: 2rem; 
+          padding: 2rem; 
+          flex: 1; 
+          min-height: 0; 
+          max-width: 1600px; 
+          margin: 0 auto; 
+          width: 100%;
+          box-sizing: border-box;
         }
-        .fs-button:hover { background: rgba(0,0,0,0.8) !important; transform: scale(1.1); }
+        @media (max-width: 1200px) {
+          .webinar-grid { grid-template-columns: 1fr 320px; gap: 1rem; padding: 1rem; }
+        }
+        @media (max-width: 768px) {
+          .webinar-grid { grid-template-columns: 1fr; display: flex; flex-direction: column; padding: 0; gap: 0; }
+          .video-container { border-radius: 0 !important; height: 250px !important; box-shadow: none !important; }
+          .chat-aside { border-radius: 0 !important; height: 50vh !important; }
+          header { padding: 0.75rem 1rem !important; }
+        }
+        .video-container {
+          background: #000;
+          border-radius: 24px;
+          overflow: hidden;
+          box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+          position: relative;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          height: 100%;
+        }
+        .chat-aside {
+          background: #fff;
+          border-radius: 24px;
+          overflow: hidden;
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+          display: flex;
+          flex-direction: column;
+          height: 100%;
+        }
       `}</style>
       
       <header style={{ 
-        background: '#fff', 
+        background: 'transparent', 
         padding: '0 2rem', 
-        height: '70px',
-        borderBottom: '1px solid #e2e8f0', 
+        height: '60px',
         display: 'flex', 
         justifyContent: 'space-between', 
         alignItems: 'center', 
         zIndex: 30,
-        boxSizing: 'border-box',
         flexShrink: 0
       }}>
-        <div style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-          <h1 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#1e293b', whiteSpace: 'nowrap', textOverflow: 'ellipsis', margin: 0 }}>{webinarData.title}</h1>
-          {isLive && <span style={{ color: '#ef4444', fontSize: '0.7rem', fontWeight: 800, lineHeight: 1 }}>● В ЕФІРІ</span>}
+        <div style={{ overflow: 'hidden', display: 'flex', gap: '1rem', alignItems: 'center' }}>
+          <h1 style={{ fontSize: '1rem', fontWeight: 700, color: '#1e293b', margin: 0 }}>{webinarData.title}</h1>
+          {isLive && <span style={{ color: '#ef4444', fontSize: '0.65rem', fontWeight: 800, padding: '0.2rem 0.5rem', background: '#fee2e2', borderRadius: '6px' }}>● LIVE</span>}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', background: '#f1f5f9', padding: '0.4rem 0.8rem', borderRadius: '10px' }}>
-          <Users size={16} style={{ color: '#4f46e5' }} />
-          <span style={{ fontWeight: 700, color: '#1e293b', fontSize: '0.9rem' }}>{viewerCount}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', background: '#fff', padding: '0.4rem 0.8rem', borderRadius: '12px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+          <Users size={14} style={{ color: '#4f46e5' }} />
+          <span style={{ fontWeight: 700, color: '#1e293b', fontSize: '0.85rem' }}>{viewerCount}</span>
         </div>
       </header>
 
@@ -359,7 +389,6 @@ export default function WebinarPage(props: any) {
         <div 
           ref={containerRef}
           className="video-container" 
-          style={{ background: '#000', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', overflow: 'hidden' }}
         >
           {!isLive && !isFinished && (
             <div style={{ textAlign: 'center', color: '#fff', padding: '2rem' }}>
@@ -455,9 +484,9 @@ export default function WebinarPage(props: any) {
           )}
         </div>
 
-        <aside className="chat-aside" style={{ background: '#fff', borderLeft: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column' }}>
-          <div style={{ padding: '0.8rem 1rem', borderBottom: '1px solid #f1f5f9', fontWeight: 700, fontSize: '0.9rem', color: '#64748b' }}>Чат трансляції</div>
-          <div style={{ flex: 1, overflowY: 'auto', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+        <aside className="chat-aside">
+          <div style={{ padding: '0.8rem 1rem', borderBottom: '1px solid #f1f5f9', fontWeight: 700, fontSize: '0.9rem', color: '#64748b', background: '#fff' }}>Чат трансляції</div>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.8rem', background: '#fff' }}>
             {messages.map(msg => (
               <div key={msg.id} style={{ animation: 'fadeIn 0.3s ease-out' }}>
                 <span style={{ fontWeight: 800, color: '#4f46e5', marginRight: '0.4rem', fontSize: '0.85rem' }}>{msg.sender}:</span>
