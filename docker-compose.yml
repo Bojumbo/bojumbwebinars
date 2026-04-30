@@ -42,10 +42,13 @@ services:
       - storage-data:/app/data
 
   tunnel:
-    image: cloudflare/cloudflared:latest
+    image: cloudflare/cloudflared:2024.4.1
     restart: always
     networks:
       - webinar-net
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
     environment:
       - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
     command: tunnel --no-autoupdate run
