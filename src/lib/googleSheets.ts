@@ -50,20 +50,31 @@ export const googleSheets = {
 
   async updateAttendance(userId: string, webinar: string) {
     if (!SPREADSHEET_ID) return;
+    console.log(`[Sheets Sync] Attempting to update attendance for User: ${userId}, Webinar: ${webinar}`);
     try {
       const sheetName = await getFirstSheetName();
+      console.log(`[Sheets Sync] Found sheet name: "${sheetName}"`);
+
       // 1. Get all rows (A:G)
       const res = await sheets.spreadsheets.values.get({
         spreadsheetId: SPREADSHEET_ID,
         range: `${sheetName}!A:G`,
       });
       const rows = res.data.values || [];
+      console.log(`[Sheets Sync] Retrieved ${rows.length} rows`);
 
       // 2. Find row by userId (Column G, index 6) and webinar (Column E, index 4)
-      const rowIndex = rows.findIndex(row => String(row[6]) === String(userId) && row[4] === webinar);
+      const rowIndex = rows.findIndex((row, idx) => {
+        const rowId = row[6] ? String(row[6]) : '';
+        const rowWebinar = row[4] ? String(row[4]) : '';
+        const match = rowId === String(userId) && rowWebinar === webinar;
+        if (match) console.log(`[Sheets Sync] Match found at row ${idx + 1}`);
+        return match;
+      });
       
       if (rowIndex !== -1) {
         // 3. Update status in column F (index 5)
+        console.log(`[Sheets Sync] Updating status to "Прийшов" for row ${rowIndex + 1}`);
         await sheets.spreadsheets.values.update({
           spreadsheetId: SPREADSHEET_ID,
           range: `${sheetName}!F${rowIndex + 1}`,
@@ -72,9 +83,12 @@ export const googleSheets = {
             values: [['Прийшов']],
           },
         });
+        console.log(`[Sheets Sync] Update successful!`);
+      } else {
+        console.warn(`[Sheets Sync] No matching row found for User: ${userId} and Webinar: ${webinar}`);
       }
-    } catch (e) {
-      console.error('Google Sheets Update Error:', e);
+    } catch (e: any) {
+      console.error('[Sheets Sync] Update Error:', e.message);
     }
   }
 };
