@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/storage';
-import { sendPulse } from '@/lib/sendpulse';
+import { googleSheets } from '@/lib/googleSheets';
 
 export async function POST(req: NextRequest) {
   try {
@@ -17,19 +17,13 @@ export async function POST(req: NextRequest) {
       joinTime: new Date().toISOString()
     });
 
-    // 2. Update SendPulse CRM
+    // 2. Sync with Google Sheets
     const user = db.getUser(userId);
     const webinar = db.getWebinars().find(w => w.id === webinarId);
     
     if (user && webinar) {
-      // Fire and forget SendPulse update to not slow down response
-      sendPulse.createOrUpdateDeal(
-        user.id,
-        user.name,
-        user.phone,
-        webinar.title,
-        true // isAttended = true
-      ).catch(e => console.error('SendPulse Sync Error:', e));
+      googleSheets.updateAttendance(user.phone, webinar.title)
+        .catch(e => console.error('Google Sheets Update Error:', e));
     }
 
     return NextResponse.json({ success: true });

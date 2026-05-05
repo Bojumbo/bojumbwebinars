@@ -18,31 +18,28 @@
 | `PUBLIC_URL` | Зовнішня адреса сайту (напр. `https://webinars.example.com`) |
 | `WEBSITE_URL` | Внутрішня адреса для Docker (зазвичай `http://web:3000`) |
 
-## 🔌 Інтеграція з SendPulse CRM
-Система автоматично синхронізує користувачів та їхні дії з CRM SendPulse.
+## 📊 Інтеграція з Google Таблицями
+Система автоматично вивантажує дані глядачів у Google Таблицю.
 
-### 1. Отримання API ключів
-- Перейдіть у **Налаштування акаунта** -> **API**.
-- Активуйте API, якщо він вимкнений.
-- Скопіюйте `ID` та `Secret` (це будуть `SENDPULSE_CLIENT_ID` та `SENDPULSE_CLIENT_SECRET`).
+### 1. Налаштування Google Cloud
+1. Перейдіть у [Google Cloud Console](https://console.cloud.google.com/).
+2. Створіть новий проект (напр. `webinar-sheets`).
+3. Увімкніть **Google Sheets API**.
+4. Перейдіть у **IAM & Admin -> Service Accounts**.
+5. Створіть Service Account, дайте йому ім'я та натисніть "Done".
+6. Натисніть на створений акаунт -> вкладка **Keys** -> **Add Key** -> **Create new key** (JSON).
+7. Завантажений файл містить `client_email` та `private_key`.
 
-### 2. Отримання ID воронки та етапів
-1. Відкрийте вашу воронку в SendPulse CRM.
-2. Подивіться на URL-адресу в браузері:
-   - `.../crm/pipelines/12345/...` — цифра `12345` це ваш `SENDPULSE_PIPELINE_ID`.
-3. Щоб знайти ID етапу (`step_id`):
-   - У CRM SendPulse зайдіть у налаштування воронки або подивіться на картку угоди.
-   - Ви можете дізнатися ID етапів, додавши їх у змінні:
-     - `SENDPULSE_STAGE_REGISTERED` — Етап "Зареєструвались в боті"
-     - `SENDPULSE_STAGE_VIEWED` — Етап "Переглянули вебінар"
+### 2. Підготовка таблиці
+1. Створіть нову Google Таблицю.
+2. Натисніть **Поділитися (Share)** та додайте Email вашого сервісного акаунта (з кроку 1.7) з правами **Редактор**.
+3. Скопіюйте ID вашої таблиці з URL-адреси: `https://docs.google.com/spreadsheets/d/ID_ТАБЛИЦІ/edit`.
 
 ### 3. Налаштування в Portainer
-Додайте ці змінні в розділі **Environment variables** вашого стеку:
-- `SENDPULSE_CLIENT_ID`
-- `SENDPULSE_CLIENT_SECRET`
-- `SENDPULSE_PIPELINE_ID`
-- `SENDPULSE_STAGE_REGISTERED`
-- `SENDPULSE_STAGE_VIEWED`
+Додайте ці змінні в розділі **Environment variables**:
+- `GOOGLE_SHEET_ID` — ID вашої таблиці.
+- `GOOGLE_SERVICE_ACCOUNT_EMAIL` — Email сервісного акаунта.
+- `GOOGLE_PRIVATE_KEY` — Приватний ключ (повністю, включаючи `-----BEGIN PRIVATE KEY-----`).
 
 ---
 

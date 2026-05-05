@@ -7,8 +7,8 @@ import { Shield, Plus, List, Trash2, ExternalLink, Calendar, Play, Upload, Datab
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
-  const [activeTab, setActiveTab] = useState<'list' | 'create' | 'library' | 'stats' | 'users' | 'sendpulse'>('list');
-  const [spStatus, setSpStatus] = useState<any>(null);
+  const [activeTab, setActiveTab] = useState<'list' | 'create' | 'library' | 'stats' | 'users' | 'sheets'>('list');
+  const [sheetsStatus, setSheetsStatus] = useState<any>(null);
   const [webinars, setWebinars] = useState([]);
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [selectedWebinarStats, setSelectedWebinarStats] = useState<any>(null);
@@ -159,11 +159,11 @@ export default function AdminPage() {
     xhr.send(fd);
   };
 
-  const fetchSpStatus = async () => {
+  const fetchSheetsStatus = async () => {
     try {
-      const res = await fetch('/api/admin/sendpulse/check');
+      const res = await fetch('/api/admin/sheets/check');
       const data = await res.json();
-      setSpStatus(data);
+      setSheetsStatus(data);
     } catch (e) {
       console.error(e);
     }
@@ -204,7 +204,7 @@ export default function AdminPage() {
           <button onClick={() => setActiveTab('library')} className={activeTab === 'library' ? 'btn-primary' : 'glass'} style={{ padding: '0.8rem 1.5rem' }}>Бібліотека</button>
           <button onClick={() => setActiveTab('stats')} className={activeTab === 'stats' ? 'btn-primary' : 'glass'} style={{ padding: '0.8rem 1.5rem' }}>Статистика</button>
           <button onClick={() => setActiveTab('users')} className={activeTab === 'users' ? 'btn-primary' : 'glass'} style={{ padding: '0.8rem 1.5rem' }}>Користувачі</button>
-          <button onClick={() => { setActiveTab('sendpulse'); fetchSpStatus(); }} className={activeTab === 'sendpulse' ? 'btn-primary' : 'glass'} style={{ padding: '0.8rem 1.5rem' }}><Share2 size={16} /> SendPulse</button>
+          <button onClick={() => { setActiveTab('sheets'); fetchSheetsStatus(); }} className={activeTab === 'sheets' ? 'btn-primary' : 'glass'} style={{ padding: '0.8rem 1.5rem' }}><Database size={16} /> Google Таблиці</button>
         </div>
 
         <div className="glass" style={{ padding: '2rem', background: '#fff' }}>
@@ -434,39 +434,35 @@ export default function AdminPage() {
             </div>
           )}
 
-          {activeTab === 'sendpulse' && (
+          {activeTab === 'sheets' && (
             <div style={{ maxWidth: '600px' }}>
-              <h3 style={{ marginBottom: '1.5rem' }}>Статус SendPulse CRM</h3>
-              {spStatus ? (
-                <div className="glass" style={{ padding: '2rem', border: `2px solid ${spStatus.status === 'success' ? '#10b981' : '#ef4444'}` }}>
+              <h3 style={{ marginBottom: '1.5rem' }}>Статус Google Таблиць</h3>
+              {sheetsStatus ? (
+                <div className="glass" style={{ padding: '2rem', border: `2px solid ${sheetsStatus.status === 'success' ? '#10b981' : '#ef4444'}` }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
-                    <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: spStatus.status === 'success' ? '#10b981' : '#ef4444' }}></div>
+                    <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: sheetsStatus.status === 'success' ? '#10b981' : '#ef4444' }}></div>
                     <span style={{ fontWeight: 700, fontSize: '1.2rem' }}>
-                      {spStatus.status === 'success' ? 'Підключено' : 'Помилка'}
+                      {sheetsStatus.status === 'success' ? 'Підключено' : 'Помилка'}
                     </span>
                   </div>
                   
-                  <p style={{ marginBottom: '1rem', color: '#64748b' }}>{spStatus.message}</p>
+                  <p style={{ marginBottom: '1rem', color: '#64748b' }}>{sheetsStatus.message}</p>
                   
                   <div style={{ background: '#f8fafc', padding: '1rem', borderRadius: '10px', fontSize: '0.9rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                      <span style={{ color: '#64748b' }}>Client ID:</span>
-                      <span style={{ fontWeight: 600 }}>{spStatus.details?.clientId}</span>
-                    </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span style={{ color: '#64748b' }}>Pipeline ID:</span>
-                      <span style={{ fontWeight: 600 }}>{spStatus.details?.pipelineId}</span>
+                      <span style={{ color: '#64748b' }}>Sheet ID:</span>
+                      <span style={{ fontWeight: 600 }}>{sheetsStatus.details?.sheetId}</span>
                     </div>
                   </div>
                   
-                  <button onClick={fetchSpStatus} className="btn-primary" style={{ marginTop: '1.5rem', width: '100%' }}>Оновити статус</button>
+                  <button onClick={fetchSheetsStatus} className="btn-primary" style={{ marginTop: '1.5rem', width: '100%' }}>Оновити статус</button>
                 </div>
               ) : (
                 <p>Завантаження статусу...</p>
               )}
               
               <div style={{ marginTop: '2rem', padding: '1rem', background: '#eff6ff', borderRadius: '10px', fontSize: '0.85rem', color: '#1e40af' }}>
-                <p><strong>Порада:</strong> Якщо статус "Помилка", перевірте змінні оточення `SENDPULSE_CLIENT_ID` та `SENDPULSE_CLIENT_SECRET` у Portainer.</p>
+                <p><strong>Порада:</strong> Переконайтеся, що ви надали доступ "Редактор" для Email сервісного акаунта до вашої таблиці.</p>
               </div>
             </div>
           )}

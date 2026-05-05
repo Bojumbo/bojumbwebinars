@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/storage';
-import { sendPulse } from '@/lib/sendpulse';
+import { googleSheets } from '@/lib/googleSheets';
 
 export async function POST(req: NextRequest) {
   const authHeader = req.headers.get('authorization');
@@ -48,16 +48,14 @@ export async function POST(req: NextRequest) {
     registrations
   });
 
-  // 3. Sync with SendPulse CRM
-  if (nearest || existingUser) {
-    sendPulse.createOrUpdateDeal(
-      chatId.toString(),
-      name,
-      phone,
-      nearest ? nearest.title : 'General Registration',
-      false // isAttended = false for registration
-    ).catch(e => console.error('SendPulse Sync Error:', e));
-  }
+  // 3. Sync with Google Sheets
+  googleSheets.appendRegistration({
+    date: new Date().toLocaleString('uk-UA'),
+    name,
+    phone,
+    username: username || 'N/A',
+    webinar: nearest ? nearest.title : 'Загальна реєстрація'
+  }).catch(e => console.error('Google Sheets Sync Error:', e));
 
   if (nearest) {
     db.addNotification({
