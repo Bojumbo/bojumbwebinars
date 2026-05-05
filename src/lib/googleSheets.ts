@@ -33,9 +33,12 @@ export const googleSheets = {
 
   async appendRegistration(data: { userId: string, name: string, phone: string, username: string, webinar: string, date: string }) {
     if (!SPREADSHEET_ID) return;
+    console.log(`[Sheets Sync] Attempting to append registration for User: ${data.userId} (${data.name})`);
     try {
       const sheetName = await getFirstSheetName();
-      await sheets.spreadsheets.values.append({
+      console.log(`[Sheets Sync] Appending to sheet: "${sheetName}"`);
+      
+      const res = await sheets.spreadsheets.values.append({
         spreadsheetId: SPREADSHEET_ID,
         range: `${sheetName}!A:G`,
         valueInputOption: 'USER_ENTERED',
@@ -43,8 +46,9 @@ export const googleSheets = {
           values: [[data.date, data.name, data.phone, data.username, data.webinar, 'Зареєструвався', data.userId]],
         },
       });
-    } catch (e) {
-      console.error('Google Sheets Append Error:', e);
+      console.log(`[Sheets Sync] Append successful! Updated range: ${res.data.updates?.updatedRange}`);
+    } catch (e: any) {
+      console.error('[Sheets Sync] Append Error:', e.message);
     }
   },
 
@@ -65,10 +69,13 @@ export const googleSheets = {
 
       // 2. Find row by userId (Column G, index 6) and webinar (Column E, index 4)
       const rowIndex = rows.findIndex((row, idx) => {
-        const rowId = row[6] ? String(row[6]) : '';
-        const rowWebinar = row[4] ? String(row[4]) : '';
-        const match = rowId === String(userId) && rowWebinar === webinar;
-        if (match) console.log(`[Sheets Sync] Match found at row ${idx + 1}`);
+        const rowId = row[6] ? String(row[6]).trim() : '';
+        const rowWebinar = row[4] ? String(row[4]).trim() : '';
+        
+        console.log(`[Sheets Sync] Checking row ${idx + 1}: ID="${rowId}", Webinar="${rowWebinar}"`);
+        
+        const match = rowId === String(userId).trim() && rowWebinar === webinar.trim();
+        if (match) console.log(`[Sheets Sync] Match found at row ${idx + 1}!`);
         return match;
       });
       
