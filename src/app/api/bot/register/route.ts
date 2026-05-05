@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/storage';
+import { sendPulse } from '@/lib/sendpulse';
 
 export async function POST(req: NextRequest) {
   const authHeader = req.headers.get('authorization');
@@ -46,6 +47,17 @@ export async function POST(req: NextRequest) {
     initialWebinarId: existingUser ? existingUser.initialWebinarId : (nearest ? nearest.id : undefined),
     registrations
   });
+
+  // 3. Sync with SendPulse CRM
+  if (nearest || existingUser) {
+    sendPulse.createOrUpdateDeal(
+      chatId.toString(),
+      name,
+      phone,
+      nearest ? nearest.title : 'General Registration',
+      false // isAttended = false for registration
+    ).catch(e => console.error('SendPulse Sync Error:', e));
+  }
 
   if (nearest) {
     db.addNotification({
