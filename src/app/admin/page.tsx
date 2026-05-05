@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Shield, Plus, List, Trash2, ExternalLink, Calendar, Play, Upload, Database, Lock, Share2, Book, Users as UsersIcon } from 'lucide-react';
+import { Shield, Plus, List, Trash2, ExternalLink, Calendar, Play, Upload, Database, Lock, Book, Users as UsersIcon } from 'lucide-react';
 
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
