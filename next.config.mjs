@@ -5,6 +5,7 @@ const nextConfig = {
   },
   // Переміщено в корінь, як того вимагає Next.js 15+
   allowedDevOrigins: ['webinars.bojumbohost.pp.ua'],
+  devIndicators: false,
 };
 
 export default nextConfig;
