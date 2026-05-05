@@ -175,9 +175,14 @@ export default function AdminPage() {
         <div className="glass" style={{ padding: '3rem', maxWidth: '400px', width: '100%', textAlign: 'center' }}>
           <Shield size={48} style={{ marginBottom: '1.5rem', color: '#4f46e5' }} />
           <h2 style={{ marginBottom: '2rem', color: '#1e293b' }}>Вхід в Адмін-панель</h2>
-          <form onSubmit={(e) => {
+          <form onSubmit={async (e) => {
             e.preventDefault();
-            if (password === 'admin123') {
+            const res = await fetch('/api/admin/auth', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ password })
+            });
+            if (res.ok) {
               setIsAuthenticated(true);
               sessionStorage.setItem('admin_auth', 'true');
             } else alert('Невірний пароль');

@@ -15,6 +15,7 @@
 | --- | --- |
 | `TELEGRAM_TOKEN` | Токен вашого бота від @BotFather |
 | `BOT_SECRET` | Довільний рядок для захисту API (напр. `my-super-secret`) |
+| `ADMIN_PASSWORD` | Пароль для входу в адмін-панель (за замовчуванням `admin123`) |
 | `PUBLIC_URL` | Зовнішня адреса сайту (напр. `https://webinars.example.com`) |
 | `WEBSITE_URL` | Внутрішня адреса для Docker (зазвичай `http://web:3000`) |
 
