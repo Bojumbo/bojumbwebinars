@@ -11,14 +11,20 @@ const auth = new google.auth.GoogleAuth({
 const sheets = google.sheets({ version: 'v4', auth });
 const SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID;
 
+async function getFirstSheetName() {
+  if (!SPREADSHEET_ID) return null;
+  const res = await sheets.spreadsheets.get({ spreadsheetId: SPREADSHEET_ID });
+  return res.data.sheets?.[0]?.properties?.title || 'Sheet1';
+}
+
 export const googleSheets = {
   async checkConnection() {
     if (!SPREADSHEET_ID || !process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL || !process.env.GOOGLE_PRIVATE_KEY) {
       return { success: false, message: 'Змінні оточення Google не встановлені.' };
     }
     try {
-      await sheets.spreadsheets.get({ spreadsheetId: SPREADSHEET_ID });
-      return { success: true, message: 'Успішне підключення до Google Таблиці.' };
+      const sheetName = await getFirstSheetName();
+      return { success: true, message: `Успішне підключення до Google Таблиці. Аркуш: "${sheetName}"` };
     } catch (e: any) {
       console.error('Google Sheets Connection Error:', e.message);
       return { success: false, message: `Помилка: ${e.message}` };
@@ -28,9 +34,10 @@ export const googleSheets = {
   async appendRegistration(data: { name: string, phone: string, username: string, webinar: string, date: string }) {
     if (!SPREADSHEET_ID) return;
     try {
+      const sheetName = await getFirstSheetName();
       await sheets.spreadsheets.values.append({
         spreadsheetId: SPREADSHEET_ID,
-        range: 'Sheet1!A:F',
+        range: `${sheetName}!A:F`,
         valueInputOption: 'USER_ENTERED',
         requestBody: {
           values: [[data.date, data.name, data.phone, data.username, data.webinar, 'Зареєструвався']],
@@ -44,10 +51,11 @@ export const googleSheets = {
   async updateAttendance(phone: string, webinar: string) {
     if (!SPREADSHEET_ID) return;
     try {
+      const sheetName = await getFirstSheetName();
       // 1. Get all rows
       const res = await sheets.spreadsheets.values.get({
         spreadsheetId: SPREADSHEET_ID,
-        range: 'Sheet1!A:F',
+        range: `${sheetName}!A:F`,
       });
       const rows = res.data.values || [];
 
@@ -58,7 +66,7 @@ export const googleSheets = {
         // 3. Update status in column F (index 5)
         await sheets.spreadsheets.values.update({
           spreadsheetId: SPREADSHEET_ID,
-          range: `Sheet1!F${rowIndex + 1}`,
+          range: `${sheetName}!F${rowIndex + 1}`,
           valueInputOption: 'USER_ENTERED',
           requestBody: {
             values: [['Прийшов']],
