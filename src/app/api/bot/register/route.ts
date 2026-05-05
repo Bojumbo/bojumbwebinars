@@ -50,6 +50,7 @@ export async function POST(req: NextRequest) {
 
   // 3. Sync with Google Sheets
   googleSheets.appendRegistration({
+    userId: chatId.toString(),
     date: new Date().toLocaleString('uk-UA'),
     name,
     phone,

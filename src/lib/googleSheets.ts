@@ -31,16 +31,16 @@ export const googleSheets = {
     }
   },
 
-  async appendRegistration(data: { name: string, phone: string, username: string, webinar: string, date: string }) {
+  async appendRegistration(data: { userId: string, name: string, phone: string, username: string, webinar: string, date: string }) {
     if (!SPREADSHEET_ID) return;
     try {
       const sheetName = await getFirstSheetName();
       await sheets.spreadsheets.values.append({
         spreadsheetId: SPREADSHEET_ID,
-        range: `${sheetName}!A:F`,
+        range: `${sheetName}!A:G`,
         valueInputOption: 'USER_ENTERED',
         requestBody: {
-          values: [[data.date, data.name, data.phone, data.username, data.webinar, 'Зареєструвався']],
+          values: [[data.date, data.name, data.phone, data.username, data.webinar, 'Зареєструвався', data.userId]],
         },
       });
     } catch (e) {
@@ -48,19 +48,19 @@ export const googleSheets = {
     }
   },
 
-  async updateAttendance(phone: string, webinar: string) {
+  async updateAttendance(userId: string, webinar: string) {
     if (!SPREADSHEET_ID) return;
     try {
       const sheetName = await getFirstSheetName();
-      // 1. Get all rows
+      // 1. Get all rows (A:G)
       const res = await sheets.spreadsheets.values.get({
         spreadsheetId: SPREADSHEET_ID,
-        range: `${sheetName}!A:F`,
+        range: `${sheetName}!A:G`,
       });
       const rows = res.data.values || [];
 
-      // 2. Find row by phone and webinar
-      const rowIndex = rows.findIndex(row => row[2] === phone && row[4] === webinar);
+      // 2. Find row by userId (Column G, index 6) and webinar (Column E, index 4)
+      const rowIndex = rows.findIndex(row => String(row[6]) === String(userId) && row[4] === webinar);
       
       if (rowIndex !== -1) {
         // 3. Update status in column F (index 5)

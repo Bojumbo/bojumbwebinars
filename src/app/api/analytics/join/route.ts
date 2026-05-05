@@ -18,11 +18,10 @@ export async function POST(req: NextRequest) {
     });
 
     // 2. Sync with Google Sheets
-    const user = db.getUser(userId);
     const webinar = db.getWebinars().find(w => w.id === webinarId);
     
-    if (user && webinar) {
-      googleSheets.updateAttendance(user.phone, webinar.title)
+    if (webinar) {
+      googleSheets.updateAttendance(userId, webinar.title)
         .catch(e => console.error('Google Sheets Update Error:', e));
     }
 
