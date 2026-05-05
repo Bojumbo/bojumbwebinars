@@ -36,6 +36,13 @@ async function getAccessToken() {
 }
 
 export const sendPulse = {
+  async checkConnection() {
+    const token = await getAccessToken();
+    if (token) {
+      return { success: true, message: 'З’єднання з SendPulse успішно встановлено.' };
+    }
+    return { success: false, message: 'Не вдалося отримати токен. Перевірте Client ID та Secret.' };
+  },
   async getOrCreateContact(name: string, phone: string) {
     const token = await getAccessToken();
     if (!token) return null;
