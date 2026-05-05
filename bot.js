@@ -164,8 +164,10 @@ const checkAndSendNotifications = async () => {
   }
 };
 
-// Запускаємо перевірку одразу при старті
-checkAndSendNotifications();
-
-// Потім кожні 10 секунд (для тесту, потім можна повернути 5 хв)
-setInterval(checkAndSendNotifications, 10 * 1000);
+// Запускаємо перевірку через 10 секунд після старту, щоб дати серверу Next.js завантажитись
+setTimeout(() => {
+  console.log('--- Перша перевірка сповіщень запущена ---');
+  checkAndSendNotifications();
+  // Потім кожні 20 секунд
+  setInterval(checkAndSendNotifications, 20 * 1000);
+}, 10000);
