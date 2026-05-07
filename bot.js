@@ -29,7 +29,7 @@ bot.on('message', async (msg) => {
           const now = new Date();
           const startTime = new Date(webinar.startTime);
           const isLive = startTime <= now;
-          
+
           if (isLive) {
             bot.sendMessage(chatId, `Вітаємо знову, ${user.name}! 😊\n\n🚀 **Трансляція вже розпочалася!**\n📌 Тема: **${webinar.title}**\n\nПриєднуйтесь:\n🔗 ${PUBLIC_URL}/webinar/${webinar.id}?u=${chatId}`, {
               parse_mode: 'Markdown'
@@ -63,7 +63,7 @@ bot.on('message', async (msg) => {
       return;
     }
     userState.set(chatId, { ...state, step: 'awaiting_contact', name: userName });
-    bot.sendMessage(chatId, `Приємно познайомитись, ${userName}! 👋\n\nТепер напишіть ваш **номер телефону**, щоб ми могли зареєструвати вас на трансляцію:`);
+    bot.sendMessage(chatId, `Приємно познайомитись, ${userName}! 👋\n\nТепер напишіть ваш Номер телефону, щоб ми могли зареєструвати вас на трансляцію:`);
     return;
   }
 
@@ -82,7 +82,7 @@ bot.on('message', async (msg) => {
 
     try {
       // 1. Реєструємо користувача та отримуємо посилання на найближчий вебінар
-      const res = await axios.post(`${WEBSITE_URL}/api/bot/register`, { 
+      const res = await axios.post(`${WEBSITE_URL}/api/bot/register`, {
         chatId: chatId.toString(),
         name: userName,
         phone: contact,
@@ -97,7 +97,7 @@ bot.on('message', async (msg) => {
         const now = new Date();
         const startTime = new Date(webinar.startTime);
         const isLive = startTime <= now;
-        
+
         if (isLive) {
           bot.sendMessage(chatId, `Ви успішно зареєстровані! ✅\n\n🚀 **Трансляція вже розпочалася!**\n📌 Тема: **${webinar.title}**\n\nШвидше приєднуйтесь за вашим персональним посиланням:\n🔗 ${PUBLIC_URL}/webinar/${webinar.id}?u=${chatId}`, {
             parse_mode: 'Markdown'
@@ -152,7 +152,7 @@ const checkAndSendNotifications = async () => {
 
     // 3. Follow-up після завершення
     for (const f of followups) {
-      await bot.sendMessage(f.chatId, `Дякуємо за участь у вебінарі! 🙏\n\nСподіваємось, вам було корисно. Підписуйтесь на наші соцмережі, щоб не пропустити нові ефіри:\n\n📸 **Instagram**: [Ваше посилання]\n📢 **Telegram-канал**: [Ваше посилання]`, {
+      await bot.sendMessage(f.chatId, `Дякуємо за участь у вебінарі! 🙏\n\nСподіваємось, вам було корисно. Підписуйтесь на наші соцмережі, щоб не пропустити нові ефіри:\n\n📸 Instagram Сергій Чайка: https://www.instagram.com/serheychaika\n📸 Instagram Autodealer: https://www.instagram.com/autodealer.company/`, {
         parse_mode: 'Markdown'
       });
       await axios.post(`${WEBSITE_URL}/api/bot/notifications/mark`, { id: f.id }, {
