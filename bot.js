@@ -15,11 +15,15 @@ console.log('--- Бот для автовебінарів запущений (П
 bot.on('message', async (msg) => {
   const chatId = msg.chat.id;
   const text = msg.text;
-  const username = msg.from.username || 'N/A';
+  const username = msg.from?.username || 'N/A';
+  const firstName = msg.from?.first_name || '';
+  const lastName = msg.from?.last_name || '';
+  const fullName = `${firstName} ${lastName}`.trim() || 'N/A';
 
   if (text === '/start') {
+    console.log(`[BOT] Користувач @${username} (${fullName}, ID: ${chatId}) запустив бота через /start`);
     try {
-      const res = await axios.get(`${WEBSITE_URL}/api/bot/user-check?chatId=${chatId}`, {
+      const res = await axios.get(`${WEBSITE_URL}/api/bot/user-check?chatId=${chatId}&username=${encodeURIComponent(username)}`, {
         headers: { 'Authorization': `Bearer ${SECRET_KEY}` }
       });
 
