@@ -6,6 +6,7 @@ const token = process.env.TELEGRAM_TOKEN;
 const WEBSITE_URL = process.env.WEBSITE_URL || 'http://web:3000'; // Внутрішня адреса для API
 const PUBLIC_URL = process.env.PUBLIC_URL || 'https://webinars.bojumbohost.pp.ua'; // Зовнішня адреса для глядачів
 const SECRET_KEY = process.env.BOT_SECRET || 'dev-secret';
+const START_WEBHOOK_URL = process.env.START_WEBHOOK_URL;
 
 const bot = new TelegramBot(token, { polling: true });
 const userState = new Map();
@@ -37,6 +38,23 @@ bot.on('message', async (msg) => {
       const res = await axios.get(`${WEBSITE_URL}/api/bot/user-check?chatId=${chatId}&username=${encodeURIComponent(username)}`, {
         headers: { 'Authorization': `Bearer ${SECRET_KEY}` }
       });
+
+      if (!res.data.exists && !userState.has(chatId)) {
+        if (START_WEBHOOK_URL) {
+          log(`[WEBHOOK] Надсилаємо вебхук про старт нового користувача @${username}`);
+          axios.post(START_WEBHOOK_URL, {
+            event: 'bot_start',
+            chatId: chatId.toString(),
+            username: username,
+            firstName: firstName,
+            lastName: lastName,
+            fullName: fullName,
+            timestamp: new Date().toISOString()
+          }).catch(err => {
+            log(`Webhook sending error: ${err.message}`, true);
+          });
+        }
+      }
 
       if (res.data.exists) {
         const { user, webinar } = res.data;
