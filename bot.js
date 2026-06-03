@@ -10,7 +10,18 @@ const SECRET_KEY = process.env.BOT_SECRET || 'dev-secret';
 const bot = new TelegramBot(token, { polling: true });
 const userState = new Map();
 
-console.log('--- Бот для автовебінарів запущений (Прямі посилання) ---');
+// Логування з київським часом
+const getKyivTime = () => new Date().toLocaleString('uk-UA', { timeZone: 'Europe/Kyiv' });
+const log = (msg, isError = false) => {
+  const prefix = `[${getKyivTime()}]`;
+  if (isError) {
+    console.error(`${prefix} ${msg}`);
+  } else {
+    console.log(`${prefix} ${msg}`);
+  }
+};
+
+log('--- Бот для автовебінарів запущений (Прямі посилання) ---');
 
 bot.on('message', async (msg) => {
   const chatId = msg.chat.id;
@@ -21,7 +32,7 @@ bot.on('message', async (msg) => {
   const fullName = `${firstName} ${lastName}`.trim() || 'N/A';
 
   if (text === '/start') {
-    console.log(`[BOT] Користувач @${username} (${fullName}, ID: ${chatId}) запустив бота через /start`);
+    log(`[BOT] Користувач @${username} (${fullName}, ID: ${chatId}) запустив бота через /start`);
     try {
       const res = await axios.get(`${WEBSITE_URL}/api/bot/user-check?chatId=${chatId}&username=${encodeURIComponent(username)}`, {
         headers: { 'Authorization': `Bearer ${SECRET_KEY}` }
@@ -50,7 +61,7 @@ bot.on('message', async (msg) => {
         return;
       }
     } catch (e) {
-      console.error('User check error:', e.message);
+      log(`User check error: ${e.message}`, true);
     }
 
     bot.sendMessage(chatId, 'Привіт! 😊 Ласкаво просимо до нашої платформи.\n\nБудь ласка, напишіть ваше **Ім’я**:');
@@ -118,7 +129,7 @@ bot.on('message', async (msg) => {
 
       userState.delete(chatId);
     } catch (error) {
-      console.error('Помилка реєстрації:', error.response?.data || error.message);
+      log(`Помилка реєстрації: ${JSON.stringify(error.response?.data || error.message)}`, true);
       bot.sendMessage(chatId, 'Вибачте, сталася помилка при реєстрації. Спробуйте пізніше.');
     }
   }
@@ -164,13 +175,13 @@ const checkAndSendNotifications = async () => {
       });
     }
   } catch (error) {
-    console.error('Notification error:', error.response?.data || error.message);
+    log(`Notification error: ${JSON.stringify(error.response?.data || error.message)}`, true);
   }
 };
 
 // Запускаємо перевірку через 10 секунд після старту, щоб дати серверу Next.js завантажитись
 setTimeout(() => {
-  console.log('--- Перша перевірка сповіщень запущена ---');
+  log('--- Перша перевірка сповіщень запущена ---');
   checkAndSendNotifications();
   // Потім кожні 20 секунд
   setInterval(checkAndSendNotifications, 20 * 1000);

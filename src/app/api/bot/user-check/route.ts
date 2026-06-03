@@ -15,7 +15,8 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'chatId is required' }, { status: 400 });
   }
 
-  console.log(`[SERVER] Перевірка користувача при старті бота: chatId=${chatId}, username=@${username}`);
+  const kyivTime = new Date().toLocaleString('uk-UA', { timeZone: 'Europe/Kyiv' });
+  console.log(`[${kyivTime}] [SERVER] Перевірка користувача при старті бота: chatId=${chatId}, username=@${username}`);
 
   const user = db.getUser(chatId);
   const webinars = db.getWebinars();

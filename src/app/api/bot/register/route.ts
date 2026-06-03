@@ -14,7 +14,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Missing data' }, { status: 400 });
   }
 
-  console.log(`[SERVER] Реєстрація користувача: chatId=${chatId}, name=${name}, phone=${phone}, username=@${username || 'N/A'}`);
+  const kyivTime = new Date().toLocaleString('uk-UA', { timeZone: 'Europe/Kyiv' });
+  console.log(`[${kyivTime}] [SERVER] Реєстрація користувача: chatId=${chatId}, name=${name}, phone=${phone}, username=@${username || 'N/A'}`);
 
   // 1. Find nearest upcoming or live webinar
   const webinars = db.getWebinars();

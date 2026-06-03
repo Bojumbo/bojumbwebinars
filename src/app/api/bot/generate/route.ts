@@ -19,7 +19,8 @@ export async function POST(req: NextRequest) {
     db.addCode(code, name, contact);
     return NextResponse.json({ success: true, code });
   } catch (error: any) {
-    console.error('Error in /api/bot/generate:', error.message);
+    const kyivTime = new Date().toLocaleString('uk-UA', { timeZone: 'Europe/Kyiv' });
+    console.error(`[${kyivTime}] Error in /api/bot/generate:`, error.message);
     return NextResponse.json({ error: 'Internal Server Error', details: error.message }, { status: 500 });
   }
 }
